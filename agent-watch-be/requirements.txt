@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+sqlalchemy
+pydantic
+aiosqlite  # for local dev with SQLite
+psycopg2-binary  # for PostgreSQL (when you switch to production)
+python-dotenv  # optional, for config file management
