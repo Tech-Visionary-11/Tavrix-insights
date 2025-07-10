@@ -1,6 +1,7 @@
+// src/libs/components/ui/cards/StatCard.tsx
+
 import React from "react"
 import { cn } from "../../../utils/cn"
-
 
 type StatCardProps = {
   title: string
@@ -25,12 +26,14 @@ export function StatCard({
   descriptionColor = "gray",
 }: StatCardProps) {
   return (
-    <div className="bg-white rounded-xl shadow-sm p-4 flex flex-col gap-2 border">
+    <div className="flex flex-col gap-2">
       <div className="flex justify-between items-center">
         <h3 className="text-sm text-muted-foreground font-medium">{title}</h3>
-        <div className="w-8 h-8 rounded-md bg-muted flex items-center justify-center text-lg">
-          {icon}
-        </div>
+        {icon && (
+<div className="w-8 h-8 rounded-md bg-indigo-100 text-indigo-600 flex items-center justify-center">
+            {icon}
+          </div>
+        )}
       </div>
       <div className="text-2xl font-bold text-black">{value}</div>
       {description && (

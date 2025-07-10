@@ -1,72 +1,63 @@
-// src/pages/dashboard/Dashboard.tsx
-
-import { Sidebar } from "../../libs/components/layout/sidebar/SideBar";
-import { Topbar } from "../../libs/components/layout/topbar/TopBar";
-import {  SmartInsightCard } from "../../libs/components/ui";
+import { Activity, AlertTriangle, Bot, DollarSign, MessageCircle } from "lucide-react";
+import AppLayout from "../../libs/components/layout/app-layout/AppLayout";
+import { SmartInsightCard } from "../../libs/components/ui";
 import { Card } from "../../libs/components/ui/cards/Card";
 import { StatCard } from "../../libs/components/ui/cards/StatCard";
 import { AgentPieChart } from "../../libs/components/ui/charts/AgentPieChart";
 import { TokenChart } from "../../libs/components/ui/charts/TokenChart";
 import { SessionTable } from "./SessionTable";
 
-
 export default function Dashboard() {
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <Sidebar />
+    <AppLayout>
+      <div className="space-y-6">
+        {/* Metrics */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
+          <Card><StatCard icon={<Bot size={18} />} title="Total Agents" value="5" description="+2 this week" /></Card>
 
-      {/* Main Area */}
-      <div className="flex flex-col flex-1 overflow-hidden">
-        {/* Topbar */}
-        <Topbar />
+<Card><StatCard icon={<Activity size={18} />} title="Total Sessions" value="13" description="runs today" /></Card>
 
-        {/* Content */}
-        <main className="p-6 space-y-6 overflow-y-auto">
-       
-          {/* Metrics */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
-            <Card><StatCard icon="🤖" title="Total Agents" value="5" description="+2 this week" /></Card>
-            <Card><StatCard icon="🎯" title="Total Sessions" value="13" description="runs today" /></Card>
-            <Card><StatCard icon="💬" title="Tokens Used" value="34.2K" description="+15% today" descriptionColor="yellow" /></Card>
-            <Card><StatCard icon="💵" title="Cost Today" value="$0.52" description="-5% vs yesterday" descriptionColor="green" /></Card>
-            <Card><StatCard icon="⚠️" title="Failed Sessions" value="3" description="Needs attention" descriptionColor="red" /></Card>
-          </div>
+<Card><StatCard icon={<MessageCircle size={18} />} title="Tokens Used" value="34.2K" description="+15% today" descriptionColor="yellow" /></Card>
 
-          {/* Smart Insights */}
-          <SmartInsightCard
-            title="Smart Insights"
-            insights={[
-              { icon: "🚨", text: "3 failures today on Agent InvoiceBot" },
-              { icon: "📈", text: "Cost has spiked 120% over yesterday" },
-              { icon: "⏳", text: "DocumentParser is running long (3m+)" },
-            ]}
-          />
+<Card><StatCard icon={<DollarSign size={18} />} title="Cost Today" value="$0.52" description="-5% vs yesterday" descriptionColor="green" /></Card>
 
-          {/* Charts */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card title="Usage Trends (Last 7 Days)">
-              <TokenChart />
-            </Card>
-            <Card title="Usage by Agent">
-              <AgentPieChart />
-            </Card>
-          </div>
+<Card><StatCard icon={<AlertTriangle size={18} />} title="Failed Sessions" value="3" description="Needs attention" descriptionColor="red" /></Card>
 
-          {/* Recent Sessions */}
-          <Card title="Recent Sessions">
-            <div className="flex justify-end mb-2">
-              <select className="px-3 py-2 border rounded-md text-sm">
-                <option>All Status</option>
-                <option>Success</option>
-                <option>Failed</option>
-                <option>Running</option>
-              </select>
-            </div>
-            <SessionTable />
+        </div>
+
+        {/* Smart Insights */}
+        <SmartInsightCard
+          title="Smart Insights"
+          insights={[
+            { icon: "🚨", text: "3 failures today on Agent InvoiceBot" },
+            { icon: "📈", text: "Cost has spiked 120% over yesterday" },
+            { icon: "⏳", text: "DocumentParser is running long (3m+)" },
+          ]}
+        />
+
+        {/* Charts */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card title="Usage Trends (Last 7 Days)">
+            <TokenChart />
           </Card>
-        </main>
+          <Card title="Usage by Agent">
+            <AgentPieChart />
+          </Card>
+        </div>
+
+        {/* Recent Sessions */}
+        <Card title="Recent Sessions">
+          <div className="flex justify-end mb-2">
+            <select className="px-3 py-2 border rounded-md text-sm">
+              <option>All Status</option>
+              <option>Success</option>
+              <option>Failed</option>
+              <option>Running</option>
+            </select>
+          </div>
+          <SessionTable />
+        </Card>
       </div>
-    </div>
-  )
+    </AppLayout>
+  );
 }

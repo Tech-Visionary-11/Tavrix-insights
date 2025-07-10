@@ -1,3 +1,5 @@
+// src/libs/components/ui/charts/TokenChart.tsx
+
 import {
   LineChart,
   Line,
@@ -20,26 +22,23 @@ const data = [
 
 export function TokenChart() {
   return (
-    <div className="bg-white p-4 rounded-xl border shadow-sm">
-      <h2 className="text-base font-semibold text-gray-800 mb-4">Token Usage (Last 7 Days)</h2>
-      <div className="h-64">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
-            <YAxis />
-            <Tooltip />
-            <Line
-              type="monotone"
-              dataKey="tokens"
-              stroke="#6366f1"
-              strokeWidth={2}
-              dot={{ r: 3 }}
-              activeDot={{ r: 6 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+    <div className="h-64">
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="date" />
+          <YAxis />
+          <Tooltip />
+          <Line
+            type="monotone"
+            dataKey="tokens"
+            stroke="#6366f1"
+            strokeWidth={2}
+            dot={{ r: 3 }}
+            activeDot={{ r: 6 }}
+          />
+        </LineChart>
+      </ResponsiveContainer>
     </div>
   )
 }
