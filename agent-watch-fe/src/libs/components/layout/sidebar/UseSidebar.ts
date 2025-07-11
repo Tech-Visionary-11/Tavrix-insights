@@ -1,10 +1,16 @@
-import { useState } from "react"
+import { useState } from "react";
 
+/** Global sidebar state */
 export function useSidebar() {
-  const [isOpen, setIsOpen] = useState(true)
-  const toggle = () => setIsOpen(prev => !prev)
-  const open = () => setIsOpen(true)
-  const close = () => setIsOpen(false)
+  /* mobile drawer */
+  const [isOpen, setIsOpen] = useState(true);
+  /* desktop collapse */
+  const [collapsed, setCollapsed] = useState(false);
 
-  return { isOpen, toggle, open, close }
+  /* ── helpers ── */
+  const toggleMobile   = () => setIsOpen((p) => !p);
+  const toggleCollapse = () => setCollapsed((p) => !p);
+  const closeMobile    = () => setIsOpen(false);
+
+  return { isOpen, collapsed, toggleMobile, toggleCollapse, closeMobile };
 }

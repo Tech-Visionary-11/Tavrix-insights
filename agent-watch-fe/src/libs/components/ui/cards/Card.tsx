@@ -1,47 +1,42 @@
-import React from "react"
-import { cn } from "../../../utils/cn"
+import { cn } from "../../../utils/cn";
 
 type CardProps = {
-  title?: string
-  description?: string
-  footer?: React.ReactNode
-  children: React.ReactNode
-  className?: string
-  withHover?: boolean
-}
+  title?: string;
+  description?: string;
+  footer?: React.ReactNode;
+  actions?: React.ReactNode;
+  children: React.ReactNode;
+  className?: string;
+};
 
 export const Card: React.FC<CardProps> = ({
   title,
   description,
   footer,
+  actions,
   children,
   className,
-  withHover = false,
-}) => {
-  return (
-    <div
-      className={cn(
-        "bg-white border border-gray-200 rounded-xl p-5 shadow-sm transition",
-        withHover && "hover:shadow-md hover:border-gray-300",
-        className
-      )}
-    >
-      {(title || description) && (
-        <div className="mb-4">
-          {title && (
-            <h3 className="text-lg font-semibold text-gray-900 tracking-tight">
-              {title}
-            </h3>
-          )}
-          {description && (
-            <p className="text-sm text-gray-500 mt-1">{description}</p>
-          )}
+}) => (
+  <div className={cn(
+    "bg-white rounded-2xl p-6 shadow-md ring-1 ring-gray-100",
+    className
+  )}>
+    {(title || description) && (
+      <div className="mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          {title && <h3 className="text-lg font-semibold text-gray-900">{title}</h3>}
+          {description && <p className="text-sm text-gray-500">{description}</p>}
         </div>
-      )}
+        {actions}
+      </div>
+    )}
 
-      <div className="space-y-3">{children}</div>
+    <div className="space-y-4">{children}</div>
 
-      {footer && <div className="mt-5 border-t pt-4 text-sm text-gray-600">{footer}</div>}
-    </div>
-  )
-}
+    {footer && (
+      <div className="mt-6 pt-4 text-sm text-gray-600 border-t border-gray-100">
+        {footer}
+      </div>
+    )}
+  </div>
+);

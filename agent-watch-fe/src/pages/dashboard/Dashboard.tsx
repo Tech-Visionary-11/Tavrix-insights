@@ -1,13 +1,16 @@
 import { Activity, AlertTriangle, Bot, DollarSign, MessageCircle } from "lucide-react";
 import AppLayout from "../../libs/components/layout/app-layout/AppLayout";
-import { SmartInsightCard } from "../../libs/components/ui";
+import { Select, SmartInsightCard } from "../../libs/components/ui";
 import { Card } from "../../libs/components/ui/cards/Card";
 import { StatCard } from "../../libs/components/ui/cards/StatCard";
 import { AgentPieChart } from "../../libs/components/ui/charts/AgentPieChart";
 import { TokenChart } from "../../libs/components/ui/charts/TokenChart";
 import { SessionTable } from "./SessionTable";
+import { useState } from "react";
 
 export default function Dashboard() {
+
+  const [status, setStatus] = useState("all");
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -46,17 +49,24 @@ export default function Dashboard() {
         </div>
 
         {/* Recent Sessions */}
-        <Card title="Recent Sessions">
-          <div className="flex justify-end mb-2">
-            <select className="px-3 py-2 border rounded-md text-sm">
-              <option>All Status</option>
-              <option>Success</option>
-              <option>Failed</option>
-              <option>Running</option>
-            </select>
-          </div>
-          <SessionTable />
-        </Card>
+     <Card
+  title="Recent Sessions"
+  actions={
+    <Select
+      wrapperClassName="sm:w-48"
+      options={[
+        { label: "All Status", value: "all" },
+        { label: "Success", value: "success" },
+        { label: "Failed", value: "failed" },
+        { label: "Running", value: "running" },
+      ]}
+      value={status}
+      onChange={(e) => setStatus(e.target.value)}
+    />
+  }
+>
+  <SessionTable />
+</Card>
       </div>
     </AppLayout>
   );

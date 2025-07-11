@@ -1,4 +1,3 @@
-import React from "react"
 import {
   Bot,
   LayoutDashboard,
@@ -7,67 +6,113 @@ import {
   Users,
   X,
   Menu,
-} from "lucide-react"
+} from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { useSidebar } from "./UseSidebar";
 
 const navItems = [
-  { name: "Dashboard", icon: <LayoutDashboard />, href: "#" },
-  { name: "Agents", icon: <Bot />, href: "#" },
-  { name: "Sessions", icon: <Users />, href: "#" },
-  { name: "Analytics", icon: <BarChart3 />, href: "#" },
-  { name: "Settings", icon: <Settings />, href: "#" },
-]
+  { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+  { name: "Agents",    icon: Bot,            href: "/agents" },
+  { name: "Sessions",  icon: Users,          href: "/sessions" },
+  { name: "Analytics", icon: BarChart3,      href: "/analytics" },
+  { name: "Settings",  icon: Settings,       href: "/settings" },
+];
 
 export function Sidebar() {
-  const [open, setOpen] = React.useState(true)
+  const { isOpen, collapsed, toggleMobile, closeMobile } = useSidebar();
+  const { pathname } = useLocation();
+console.log(collapsed);
+
+  /* mobile overlay */
+  const Overlay = (
+    <div
+      onClick={closeMobile}
+      className={`fixed inset-0 bg-black/30 backdrop-blur-sm z-30 md:hidden transition-opacity ${
+        isOpen ? "opacity-100" : "pointer-events-none opacity-0"
+      }`}
+    />
+  );
 
   return (
     <>
-      {/* Mobile Menu Button */}
-      <button
-        className="md:hidden fixed top-4 left-4 z-50 bg-white p-2 rounded-md shadow"
-        onClick={() => setOpen(true)}
-      >
-        <Menu size={20} />
-      </button>
+      {/* Overlay for mobile */}
+      {Overlay}
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full w-64 bg-white border-r z-40 px-4 py-6 flex flex-col transition-transform duration-300 ${
-          open ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0 md:static md:flex`}
+        className={`fixed md:static top-0 left-0 z-40 h-full
+          flex flex-col
+          bg-white shadow-md ring-1 ring-gray-100
+          transition-all duration-300
+          ${isOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0
+          ${collapsed ? "w-20" : "w-64"} md:rounded-r-2xl`}
       >
-        {/* Close on Mobile */}
-        <div className="flex items-center justify-between mb-10 px-2 md:hidden">
-          <h1 className="text-xl font-bold text-indigo-600">AgentTrack</h1>
-          <button onClick={() => setOpen(false)} className="text-gray-500">
+        {/* Mobile header */}
+        <div className="flex items-center justify-between px-4 py-5 md:hidden">
+          <span className="text-lg font-bold text-indigo-700">AgentTrack</span>
+          <button onClick={closeMobile} className="text-gray-500">
             <X size={20} />
           </button>
         </div>
 
-        {/* App Name (desktop) */}
-        <h1 className="text-xl font-bold text-indigo-600 mb-10 px-2 hidden md:block">
-          AgentTrack
-        </h1>
+        {/* Brand (desktop) */}
+        <div
+          className={`hidden md:flex items-center px-6 pt-6 pb-8 ${
+            collapsed ? "justify-center" : ""
+          }`}
+        >
+          {collapsed ? (
+            <LayoutDashboard className="w-6 h-6 text-indigo-700" />
+          ) : (
+            <span className="text-xl font-bold text-indigo-700">AgentTrack</span>
+          )}
+        </div>
 
         {/* Navigation */}
-        <nav className="flex-1 space-y-2">
-          {navItems.map((item, index) => (
-            <a
-              key={index}
-              href={item.href}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 text-sm hover:bg-gray-100 transition"
-            >
-              <span className="text-indigo-500">{item.icon}</span>
-              {item.name}
-            </a>
-          ))}
+        <nav className="flex-1 space-y-1 px-2">
+          {navItems.map(({ name, icon: Icon, href }) => {
+            const active = pathname === href;
+            return (
+              <Link
+                key={href}
+                to={href}
+                onClick={closeMobile}
+                className={`
+                  relative flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition
+                  ${active ? "bg-indigo-50 text-indigo-700 font-medium" : "text-gray-700 hover:bg-gray-50"}
+                  ${collapsed ? "justify-center px-0" : ""}
+                `}
+              >
+                {active && (
+                  <span className="absolute left-0 top-0 h-full w-1 rounded-r bg-indigo-600" />
+                )}
+                <Icon
+                  size={18}
+                  className={`${active ? "text-indigo-600" : "text-gray-500"} ${
+                    collapsed ? "" : "group-hover:text-indigo-600"
+                  }`}
+                />
+                {!collapsed && name}
+              </Link>
+            );
+          })}
         </nav>
 
         {/* Footer */}
-        <footer className="text-xs text-muted-foreground px-2 pt-4 border-t">
-          © 2025 AgentTrack
-        </footer>
+        {!collapsed && (
+          <footer className="mt-auto px-4 py-6 text-xs text-gray-400">
+            © 2025 AgentTrack
+          </footer>
+        )}
       </aside>
+
+      {/* Mobile toggle button (moved outside so it's always visible) */}
+      <button
+        onClick={toggleMobile}
+        className="md:hidden fixed top-4 left-4 z-50 bg-white p-2 rounded-md shadow"
+      >
+        <Menu  size={20} />
+      </button>
     </>
-  )
+  );
 }

@@ -1,7 +1,7 @@
 import { Lightbulb } from "lucide-react"
 
 type InsightItem = {
-  icon: string
+  icon: React.ReactNode
   text: string
 }
 

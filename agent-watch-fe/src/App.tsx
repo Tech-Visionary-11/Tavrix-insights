@@ -1,10 +1,12 @@
-import Dashboard from "./pages/dashboard/Dashboard"
-
+import { RouterProvider } from "react-router-dom";
+import { router } from "./Routes";
+ 
 
 function App() {
 
   return (
-   <Dashboard/>
+     <RouterProvider router={router} />
+
   )
 }
 
