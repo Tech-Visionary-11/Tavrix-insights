@@ -6,6 +6,8 @@ import {
   Users,
   X,
   Menu,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useSidebar } from "./UseSidebar";
@@ -19,9 +21,8 @@ const navItems = [
 ];
 
 export function Sidebar() {
-  const { isOpen, collapsed, toggleMobile, closeMobile } = useSidebar();
+  const { isOpen, collapsed, toggleMobile, toggleCollapse, closeMobile } = useSidebar();
   const { pathname } = useLocation();
-console.log(collapsed);
 
   /* mobile overlay */
   const Overlay = (
@@ -55,10 +56,10 @@ console.log(collapsed);
           </button>
         </div>
 
-        {/* Brand (desktop) */}
+        {/* Brand & Collapse Toggle (desktop) */}
         <div
           className={`hidden md:flex items-center px-6 pt-6 pb-8 ${
-            collapsed ? "justify-center" : ""
+            collapsed ? "justify-center" : "justify-between"
           }`}
         >
           {collapsed ? (
@@ -66,7 +67,7 @@ console.log(collapsed);
           ) : (
             <span className="text-xl font-bold text-indigo-700">Agent Watch</span>
           )}
-        </div>
+       </div>
 
         {/* Navigation */}
         <nav className="flex-1 space-y-1 px-2">
@@ -97,21 +98,26 @@ console.log(collapsed);
             );
           })}
         </nav>
+ {/* Collapse Button - neatly at bottom */}
 
-        {/* Footer */}
-        {!collapsed && (
-          <footer className="mt-auto px-4 py-6 text-xs text-gray-400">
-            © 2025 Agent Watch.
-          </footer>
-        )}
+<div className="hidden md:flex justify-start py-4 ms-5  mt-auto">
+  <button
+    onClick={toggleCollapse}
+    className="p-2 rounded-full border hover:bg-gray-100 transition"
+    aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+  >
+    {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+  </button>
+</div>
       </aside>
 
-      {/* Mobile toggle button (moved outside so it's always visible) */}
+      {/* Mobile toggle button (only on mobile, outside sidebar) */}
       <button
         onClick={toggleMobile}
         className="md:hidden fixed top-4 left-4 z-50 bg-white p-2 rounded-md shadow"
+        aria-label="Open sidebar"
       >
-        <Menu  size={20} />
+        <Menu size={20} />
       </button>
     </>
   );

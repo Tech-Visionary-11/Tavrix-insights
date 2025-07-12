@@ -14,22 +14,27 @@ export const router = createBrowserRouter([
   {
     path: "/dashboard",
     element: <Dashboard />,
+    handle: { name: "Dashboard", isParent: true },
   },
   {
     path: "/agents",
     element: <Agents />,
+    handle: { name: "Agents", isParent: true },
   },
   {
     path: "/agents/add",
-    element: <AddAgentPage />, // <-- Add this route
+    element: <AddAgentPage />,
+    handle: { name: "Add Agent", isParent: false },
   },
-    {
+  {
     path: "/agents/edit/:id",
-    element: <EditAgentPage/>, // <-- Add this route
+    element: <EditAgentPage />,
+    handle: { name: "Edit Agent", isParent: false },
   },
-     {
+  {
     path: "/agents/view/:id",
-    element: <ViewAgentPage/>, // <-- Add this route
+    element: <ViewAgentPage />,
+    handle: { name: "View Agent", isParent: false },
   },
   {
     path: "*",
