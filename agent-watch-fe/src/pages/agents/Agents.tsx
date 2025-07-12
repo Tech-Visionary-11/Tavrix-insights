@@ -1,5 +1,5 @@
 import { useState, type JSX } from "react";
-import { useNavigate } from "react-router-dom";
+import {  useNavigate } from "react-router-dom";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
   Activity,
@@ -17,6 +17,7 @@ import { Card } from "../../libs/components/ui/cards/Card";
 import { StatCard } from "../../libs/components/ui/cards/StatCard";
 import { Button } from "../../libs/components/ui/button/Button";
 import { DataTable, Select } from "../../libs/components/ui";
+
 
 type Agent = {
   name: string;
@@ -48,8 +49,7 @@ const agents: Agent[] = [
 
 export default function Agents() {
   const [statusFilter, setStatusFilter] = useState("all");
-  // const navigate = useNavigate();
-
+  const navigate = useNavigate();
   const filtered =
     statusFilter === "all"
       ? agents
@@ -112,7 +112,7 @@ export default function Agents() {
           <Button
             size="sm"
             variant="secondary"
-            // onClick={() => navigate(`/agents/${row.original.name}`)}
+            onClick={() => navigate(`/agents/${row.original.name}`)}
           >
             <Eye size={14} className="mr-1" />
             View
@@ -120,7 +120,7 @@ export default function Agents() {
           <Button
             size="sm"
             variant="primary"
-            // onClick={() => navigate(`/agents/edit/${row.original.name}`)}
+            onClick={() => navigate(`/agents/edit/${row.original.name}`)}
           >
             <Pencil size={14} className="mr-1" />
             Edit
@@ -180,7 +180,9 @@ export default function Agents() {
                 { label: "Inactive", value: "inactive" },
               ]}
             />
-            <Button onClick={() => navigate("/agents/create")}>
+            <Button  onClick={() =>
+          navigate("/agents/add")
+        }>
               + Add Agent
             </Button>
           </div>
@@ -188,6 +190,7 @@ export default function Agents() {
       >
         <DataTable columns={columns} data={filtered} maxHeight="420px" />
       </Card>
+
     </AppLayout>
   );
 }

@@ -5,4 +5,10 @@ export * from "./data-table/DataTable";
 export * from "./input/Input";
 export * from "./select/Select";
 export * from "./tabs/Tabs";
+export * from "./button/Button";
+export * from "./stepper/Stepper";  
+export * from "./cards/Card";
+export * from "./cards/StatCard";
+export * from "./input/TextArea";
+export * from "./modal/Modal";
  
