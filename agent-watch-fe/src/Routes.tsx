@@ -1,7 +1,9 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import Dashboard from './pages/dashboard/Dashboard';
 import Agents from './pages/agents/Agents';
-import AddAgent from './pages/agents/AddAgent'; // <-- Import your AddAgent component
+import AddAgentPage from './pages/agents/AddAgent';
+import EditAgentPage from './pages/agents/EditAgent';
+
 
 export const router = createBrowserRouter([
   {
@@ -18,7 +20,11 @@ export const router = createBrowserRouter([
   },
   {
     path: "/agents/add",
-    element: <AddAgent />, // <-- Add this route
+    element: <AddAgentPage />, // <-- Add this route
+  },
+    {
+    path: "/agents/edit/:id",
+    element: <EditAgentPage/>, // <-- Add this route
   },
   {
     path: "*",

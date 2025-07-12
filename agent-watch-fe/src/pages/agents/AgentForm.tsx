@@ -5,12 +5,19 @@ import { AgentInfoTab } from "./tabs/AgentInfoTab";
 import { ModelConfigTab } from "./tabs/ModelConfigTab";
 import { AlertingTab } from "./tabs/AlertingTab";
 import { Stepper } from "../../libs/components/ui/stepper/Stepper";
+import type { AgentFormData } from "./AgentsTypes";
 
 const steps = ["Agent Info", "Model Setup", "Alert Rules"];
 
-export function AgentForm({ onSubmit }: { onSubmit: (v: any) => void }) {
+export function AgentForm({
+  onSubmit,
+  initialData,
+}: {
+  onSubmit: (values: any) => void;
+  initialData?: AgentFormData | null;
+}) {
   const [step, setStep] = useState(0);
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState(initialData);
 
   const next  = () => setStep((s) => Math.min(s + 1, steps.length - 1));
   const back  = () => setStep((s) => Math.max(s - 1, 0));

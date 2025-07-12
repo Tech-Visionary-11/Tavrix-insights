@@ -49,7 +49,7 @@ console.log(collapsed);
       >
         {/* Mobile header */}
         <div className="flex items-center justify-between px-4 py-5 md:hidden">
-          <span className="text-lg font-bold text-indigo-700">AgentTrack</span>
+          <span className="text-lg font-bold text-indigo-700">Agent Watch</span>
           <button onClick={closeMobile} className="text-gray-500">
             <X size={20} />
           </button>
@@ -64,7 +64,7 @@ console.log(collapsed);
           {collapsed ? (
             <LayoutDashboard className="w-6 h-6 text-indigo-700" />
           ) : (
-            <span className="text-xl font-bold text-indigo-700">AgentTrack</span>
+            <span className="text-xl font-bold text-indigo-700">Agent Watch</span>
           )}
         </div>
 
@@ -101,7 +101,7 @@ console.log(collapsed);
         {/* Footer */}
         {!collapsed && (
           <footer className="mt-auto px-4 py-6 text-xs text-gray-400">
-            © 2025 AgentTrack
+            © 2025 Agent Watch.
           </footer>
         )}
       </aside>
