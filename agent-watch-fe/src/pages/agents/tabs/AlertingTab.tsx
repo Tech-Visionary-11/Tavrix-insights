@@ -6,13 +6,13 @@ export function AlertingTab({ data, onSubmit }: any) {
   return (
     <Formik
       initialValues={{
-        enabled: data.enabled ?? true,
-        channel: data.channel ?? "email",
-        alertEmail: data.alertEmail ?? "",
-        webhook: data.webhook ?? "",
-        failureThreshold: data.failureThreshold ?? 5,
-        costThreshold: data.costThreshold ?? 10,
-        notes: data.notes ?? "",
+        enabled: data?.enabled ?? true,
+        channel: data?.channel ?? "email",
+        alertEmail: data?.alertEmail ?? "",
+        webhook: data?.webhook ?? "",
+        failureThreshold: data?.failureThreshold ?? 5,
+        costThreshold: data?.costThreshold ?? 10,
+        notes: data?.notes ?? "",
       }}
       onSubmit={(values) => onSubmit(values)}
     >

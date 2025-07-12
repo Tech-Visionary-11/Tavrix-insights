@@ -12,7 +12,7 @@ const schema = Yup.object({
 });
 
 export function AgentInfoTab({ data, onNext }: any) {
-  const [avatarUrl, setAvatarUrl] = useState(data.avatar || "");
+  const [avatarUrl, setAvatarUrl] = useState(data?.avatar || "");
 
   const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -25,12 +25,12 @@ export function AgentInfoTab({ data, onNext }: any) {
   return (
     <Formik
       initialValues={{
-        name: data.name || "",
-        role: data.role || "",
-        description: data.description || "",
-        type: data.type || "Chatbot",
-        status: data.status || "active",
-        tags: data.tags || "",
+        name: data?.name || "",
+        role: data?.role || "",
+        description: data?.description || "",
+        type: data?.type || "Chatbot",
+        status: data?.status || "active",
+        tags: data?.tags || "",
       }}
       validationSchema={schema}
       onSubmit={(values) => onNext({ ...values, avatar: avatarUrl })}

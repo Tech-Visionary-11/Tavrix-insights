@@ -11,4 +11,4 @@ export * from "./cards/Card";
 export * from "./cards/StatCard";
 export * from "./input/TextArea";
 export * from "./modal/Modal";
- 
+export * from "./progress/Progress";

@@ -1,11 +1,11 @@
 import { cn } from "../../../utils/cn";
 
 type CardProps = {
-  title?: string;
+  title?: React.ReactNode; // ✅ allow JSX too
   description?: string;
   footer?: React.ReactNode;
   actions?: React.ReactNode;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   className?: string;
 };
 

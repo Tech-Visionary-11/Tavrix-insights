@@ -14,11 +14,11 @@ export function ModelConfigTab({ data, onNext }: any) {
   return (
     <Formik
       initialValues={{
-        modelType: data.modelType ?? "gpt‑4o",
-        temperature: data.temperature ?? 0.7,
-        maxTokens: data.maxTokens ?? 1024,
-        topP: data.topP ?? 1,
-        systemPrompt: data.systemPrompt ?? "",
+        modelType: data?.modelType ?? "gpt‑4o",
+        temperature: data?.temperature ?? 0.7,
+        maxTokens: data?.maxTokens ?? 1024,
+        topP: data?.topP ?? 1,
+        systemPrompt: data?.systemPrompt ?? "",
       }}
       validationSchema={schema}
       onSubmit={(values) => onNext(values)}

@@ -112,7 +112,7 @@ export default function Agents() {
           <Button
             size="sm"
             variant="secondary"
-            onClick={() => navigate(`/agents/${row.original.name}`)}
+            onClick={() => navigate(`/agents/view/${row.original.name}`)}
           >
             <Eye size={14} className="mr-1" />
             View
