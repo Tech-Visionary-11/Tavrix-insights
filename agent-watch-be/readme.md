@@ -30,3 +30,6 @@ A FastAPI backend service for tracking AI agents, LLM prompt usage, token consum
 ```bash
 git clone https://github.com/yourusername/ai-agent-tracker.git
 cd ai-agent-tracker
+
+```bash
+python -m uvicorn app.main:app --reload

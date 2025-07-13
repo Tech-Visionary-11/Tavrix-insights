@@ -1,8 +1,14 @@
 from fastapi import FastAPI
-from .database import Base, engine
-from .routes import track
+from app.core.database import init_db
+from app.api.v1 import agents 
 
-app = FastAPI()
-Base.metadata.create_all(bind=engine)
+app = FastAPI(title="Agent Watch API")
 
-app.include_router(track.router)
+app.include_router(agents.router)
+# app.include_router(sessions.router)
+# app.include_router(logs.router)
+# app.include_router(alerts.router)
+
+@app.on_event("startup")
+async def startup():
+    await init_db()
