@@ -3,10 +3,10 @@ from sqlalchemy.orm import Session
 from app.models.agent import Agent
 from app.schemas.agent import AgentCreate, AgentUpdate
 import uuid
-
+import datetime
 
 def create_agent(db: Session, agent: AgentCreate):
-    new_agent = Agent(id=str(uuid.uuid4()), **agent.dict())
+    new_agent = Agent(id=str(uuid.uuid4()), **agent.dict(),created_at=datetime.datetime.utcnow(), updated_at=datetime.datetime.utcnow())
     db.add(new_agent)
     db.commit()
     db.refresh(new_agent)
@@ -26,6 +26,7 @@ def update_agent(db: Session, agent_id: str, data: AgentUpdate):
     if agent:
         for key, value in data.dict(exclude_unset=True).items():
             setattr(agent, key, value)
+        setattr(agent, 'updated_at', datetime.datetime.utcnow())
         db.commit()
         db.refresh(agent)
     return agent

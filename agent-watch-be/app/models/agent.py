@@ -33,6 +33,7 @@ class Agent(Base):
 
     id: str = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
     name: str = Column(String, nullable=False)
+    role: Optional[str] = Column(String)
     description: Optional[str] = Column(String)
     tags: Optional[str] = Column(String)
 

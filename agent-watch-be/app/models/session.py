@@ -1,23 +1,50 @@
-# from datetime import datetime
-# from typing import Optional
+from sqlalchemy import Column, String, Integer, Float, ForeignKey, Enum, DateTime
+from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy.sql import func
+from sqlalchemy.ext.hybrid import hybrid_property
+from enum import Enum as PyEnum
+from datetime import timezone
+import uuid
 
-# from sqlmodel import SQLModel, Field
+Base = declarative_base()
 
+class SessionStatusEnum(PyEnum):
+    running   = "running"
+    completed = "completed"
+    error     = "error"
 
-# class Session(SQLModel, table=True):
-#     id: Optional[int] = Field(default=None, primary_key=True)
-#     agent_id: int = Field(foreign_key="agents.id")
-#     # ── timeline ──
-#     started_at: datetime = Field(default_factory=datetime.utcnow)
-#     ended_at: Optional[datetime] = None
+class Session(Base):
+    __tablename__ = "sessions"
 
-#     # ── analytics ──
-#     duration_seconds: Optional[int] = None          # auto‑calculated on close
-#     total_tokens: int = 0
-#     cost_usd: float = 0.0
-#     error_count: int = 0
+    id        = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    agent_id  = Column(String, ForeignKey("agents.id"), nullable=False)
 
-#     # ── status & meta ──
-#     status: str = "running"                         # running | success | failed
-#     tag: Optional[str] = None                       # e.g. finance, batch‑import
-#     notes: Optional[str] = None
+    tag       = Column(String, nullable=True)
+    notes     = Column(String, nullable=True)
+    status    = Column(Enum(SessionStatusEnum), default=SessionStatusEnum.running)
+
+    total_tokens = Column(Integer, default=0)
+    cost_usd     = Column(Float,   default=0.0)
+    error_count  = Column(Integer, default=0)
+
+    started_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now()
+    )
+    ended_at   = Column(
+        DateTime(timezone=True),
+        nullable=True
+    )
+
+    # ---- helpers -----------------------------------------------------------
+    @hybrid_property
+    def duration_seconds(self):
+        if self.started_at and self.ended_at:
+            return (self.ended_at - self.started_at).total_seconds()
+        return None
+
+    logs = relationship(
+        "SessionLog",
+        back_populates="session",
+        cascade="all, delete-orphan"
+    )

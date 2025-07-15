@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.core.database import get_session
 from app.schemas.agent import AgentCreate, AgentUpdate, AgentOut
-from app.logic import agent as agent_crud
+from app.repository import agent as agent_crud
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 

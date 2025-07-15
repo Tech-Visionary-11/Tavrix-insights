@@ -1,108 +1,67 @@
-# from datetime import datetime
-# from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, status, Path, Query
+from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Optional, List
 
-# from fastapi import APIRouter, Depends, HTTPException, Query, status
-# from sqlmodel import select, col
-# from sqlalchemy.ext.asyncio import AsyncSession
+from app.core.database import get_session
+from app.schemas.session import (
+    SessionCreate,
+    SessionUpdateClose,
+    SessionOut,
+)
+from app.repository import session as session_crud
 
-# from app.core.database import get_session
-# from app.models.session import Session
-# from app.schemas.session import SessionCreate, SessionRead, SessionUpdate
+router = APIRouter(prefix="/sessions", tags=["Sessions"])
 
-# router = APIRouter(prefix="/sessions", tags=["Sessions"])
+# ---------- create ---------------------------------------------------------
+@router.post(
+    "/",
+    response_model=SessionOut,
+    status_code=status.HTTP_201_CREATED
+)
+async def create_session(
+    payload: SessionCreate,
+    db: AsyncSession = Depends(get_session)
+):
+    return await session_crud.create_session(db, payload)
 
+# ---------- list -----------------------------------------------------------
+@router.get("/", response_model=List[SessionOut])
+async def list_sessions(
+    agent_id: Optional[str] = Query(None),
+    status_: Optional[str]  = Query(None, alias="status"),
+    db: AsyncSession = Depends(get_session),
+):
+    return await session_crud.get_sessions(db, agent_id, status_)
 
-# # ░░ CREATE ░░
-# @router.post("/", response_model=SessionRead, status_code=status.HTTP_201_CREATED)
-# async def create_session(payload: SessionCreate, db: AsyncSession = Depends(get_session)):
-#     session = Session.model_validate(payload)
-#     if session.started_at is None:
-#         session.started_at = datetime.utcnow()
-#     db.add(session)
-#     await db.commit()
-#     await db.refresh(session)
-#     return session
+# ---------- get one --------------------------------------------------------
+@router.get("/{session_id}", response_model=SessionOut)
+async def get_session(
+    session_id: str = Path(...),
+    db: AsyncSession = Depends(get_session)
+):
+    sess = await session_crud.get_session(db, session_id)
+    if not sess:
+        raise HTTPException(404, "Session not found")
+    return sess
 
+# ---------- close (PATCH) --------------------------------------------------
+@router.patch("/{session_id}", response_model=SessionOut)
+async def close_session(
+    session_id: str,
+    payload: SessionUpdateClose,
+    db: AsyncSession = Depends(get_session)
+):
+    sess = await session_crud.close_session(db, session_id, payload)
+    if not sess:
+        raise HTTPException(404, "Session not found")
+    return sess
 
-# # ░░ LIST ░░
-# @router.get("/", response_model=List[SessionRead])
-# async def list_sessions(
-#     db: AsyncSession = Depends(get_session),
-#     agent_id: Optional[int] = None,
-#     status: Optional[str] = None,
-#     tag: Optional[str] = None,
-#     date_from: Optional[datetime] = Query(None),
-#     date_to: Optional[datetime] = Query(None),
-#     min_duration: Optional[int] = Query(None, description="seconds"),
-#     max_duration: Optional[int] = Query(None, description="seconds"),
-#     min_cost: Optional[float] = None,
-#     max_cost: Optional[float] = None,
-#     skip: int = 0,
-#     limit: int = 50,
-# ):
-#     stmt = select(Session)
-
-#     # ── filters ──
-#     if agent_id:
-#         stmt = stmt.where(Session.agent_id == agent_id)
-#     if status:
-#         stmt = stmt.where(Session.status == status)
-#     if tag:
-#         stmt = stmt.where(Session.tag == tag)
-#     if date_from:
-#         stmt = stmt.where(Session.started_at >= date_from)
-#     if date_to:
-#         stmt = stmt.where(Session.started_at <= date_to)
-#     if min_duration:
-#         stmt = stmt.where(Session.duration_seconds >= min_duration)
-#     if max_duration:
-#         stmt = stmt.where(Session.duration_seconds <= max_duration)
-#     if min_cost:
-#         stmt = stmt.where(Session.cost_usd >= min_cost)
-#     if max_cost:
-#         stmt = stmt.where(Session.cost_usd <= max_cost)
-
-#     stmt = stmt.order_by(Session.started_at.desc()).offset(skip).limit(limit)
-
-#     result = await db.exec(stmt)
-#     return result.all()
-
-
-# # ░░ RETRIEVE ░░
-# @router.get("/{session_id}", response_model=SessionRead)
-# async def get_session(session_id: int, db: AsyncSession = Depends(get_session)):
-#     sess = await db.get(Session, session_id)
-#     if not sess:
-#         raise HTTPException(404, detail="Session not found")
-#     return sess
-
-
-# # ░░ UPDATE ░░
-# @router.put("/{session_id}", response_model=SessionRead)
-# async def update_session(
-#     session_id: int, payload: SessionUpdate, db: AsyncSession = Depends(get_session)
-# ):
-#     sess = await db.get(Session, session_id)
-#     if not sess:
-#         raise HTTPException(404, detail="Session not found")
-
-#     for field, value in payload.model_dump(exclude_unset=True).items():
-#         setattr(sess, field, value)
-
-#     # auto‑compute duration if ended_at provided
-#     if sess.ended_at and not sess.duration_seconds:
-#         sess.duration_seconds = int((sess.ended_at - sess.started_at).total_seconds())
-
-#     await db.commit()
-#     await db.refresh(sess)
-#     return sess
-
-
-# # ░░ DELETE ░░
-# @router.delete("/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
-# async def delete_session(session_id: int, db: AsyncSession = Depends(get_session)):
-#     sess = await db.get(Session, session_id)
-#     if not sess:
-#         raise HTTPException(404, detail="Session not found")
-#     await db.delete(sess)
-#     await db.commit()
+# ---------- delete ---------------------------------------------------------
+@router.delete("/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_session(
+    session_id: str,
+    db: AsyncSession = Depends(get_session)
+):
+    ok = await session_crud.delete_session(db, session_id)
+    if not ok:
+        raise HTTPException(404, "Session not found")
