@@ -1,27 +1,30 @@
-from sqlmodel import SQLModel
+# app/core/database.py
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from pydantic_settings import BaseSettings
 
+from app.models.agent import Base  # ⬅️ VERY IMPORTANT — import Base where Agent is defined
+
 class Settings(BaseSettings):
     database_url: str
-    class Config: env_file = ".env"
+    class Config:
+        env_file = ".env"
 
 settings = Settings()
 
-# async engine ⬇️
 engine = create_async_engine(settings.database_url, echo=False)
 
-# session factory ⬇️
 AsyncSessionLocal = sessionmaker(
-    engine,
+    bind=engine,
     class_=AsyncSession,
     expire_on_commit=False,
 )
 
+# ✅ Use Base.metadata, NOT SQLModel.metadata
 async def init_db() -> None:
     async with engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.create_all)
+        await conn.run_sync(Base.metadata.create_all)
+        print("✅ Tables created")
 
 async def get_session() -> AsyncSession:
     async with AsyncSessionLocal() as session:

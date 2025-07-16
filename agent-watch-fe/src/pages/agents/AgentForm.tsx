@@ -1,71 +1,147 @@
+import { Formik, Form } from "formik";
+import * as Yup from "yup";
 import { useState } from "react";
-import { Card } from "../../libs/components/ui/cards/Card";
-import { Button } from "../../libs/components/ui/button/Button";
 import { AgentInfoTab } from "./tabs/AgentInfoTab";
 import { ModelConfigTab } from "./tabs/ModelConfigTab";
 import { AlertingTab } from "./tabs/AlertingTab";
 import { Stepper } from "../../libs/components/ui/stepper/Stepper";
-import type { AgentFormData } from "./AgentsTypes";
+import { Button } from "../../libs/components/ui/button/Button";
+import { Card } from "../../libs/components/ui/cards/Card";
+import type { AgentCreateInput } from "./AgentsTypes";
 
 const steps = ["Agent Info", "Model Setup", "Alert Rules"];
+
+const validationSchemas = [
+  // Step 0 - Agent Info
+  Yup.object({
+    name: Yup.string().required("Name is required"),
+    type: Yup.string().required("Type is required"),
+    status: Yup.string().required("Status is required"),
+  }),
+
+  // Step 1 - Model Config
+  Yup.object({
+    provider: Yup.string().required("Provider is required"),
+
+    model_name: Yup.string().when("provider", {
+      is: (val: string) => val !== "none",
+      then: (schema) => schema.required("Model name is required"),
+      otherwise: (schema) => schema.optional(),
+    }),
+
+    api_key: Yup.string().when(["provider", "customPricing"], {
+      is: (provider: string, custom: boolean) =>
+        ["openai", "anthropic"].includes(provider) && !custom,
+      then: (schema) => schema.required("API Key is required"),
+      otherwise: (schema) => schema.optional(),
+    }),
+
+    custom_pricing: Yup.boolean(),
+
+    prompt_price: Yup.number().when("customPricing", {
+      is: true,
+      then: (schema) =>
+        schema.required("Prompt token price is required").min(0),
+      otherwise: (schema) => schema.optional(),
+    }),
+
+    completion_price: Yup.number().when("customPricing", {
+      is: true,
+      then: (schema) =>
+        schema.required("Completion token price is required").min(0),
+      otherwise: (schema) => schema.optional(),
+    }),
+
+    track_tokens: Yup.boolean(),
+  }),
+
+  // Step 2 - Alerting (still empty)
+  Yup.object({}),
+];
 
 export function AgentForm({
   onSubmit,
   initialData,
+  loading,
 }: {
   onSubmit: (values: any) => void;
-  initialData?: AgentFormData | null;
+  initialData?: AgentCreateInput | null;
+  loading?: boolean;
 }) {
   const [step, setStep] = useState(0);
-  const [formData, setFormData] = useState(initialData);
 
-  const next  = () => setStep((s) => Math.min(s + 1, steps.length - 1));
-  const back  = () => setStep((s) => Math.max(s - 1, 0));
-  const save  = (data: any) => setFormData((p) => ({ ...p, ...data }));
-  const skipStep = () => next();
-  const skipAndSubmit = () => onSubmit(formData); // use whatever is available
+  const next = () => setStep((s) => Math.min(s + 1, steps.length - 1));
+  const back = () => setStep((s) => Math.max(s - 1, 0));
+
+  const isLast = step === steps.length - 1;
 
   return (
-    <Card className="px-6 py-8">
-      {/* Step indicator */}
-      <Stepper steps={steps} active={step} />
+    <Formik
+      initialValues={{
+        name: initialData?.name || "",
+        role: initialData?.role || "",
+        description: initialData?.description || "",
+        type: initialData?.type || "assistant",
+        status: initialData?.status || "active",
+        tags: initialData?.tags || "",
+        avatar_url: initialData?.avatar_url || "",
+        provider: initialData?.provider || "openai",
+        model_name: initialData?.model_name || "",
+        api_key:  initialData?.api_key || "",
+        custom_pricing: initialData?.custom_pricing || false,
+        prompt_price: initialData?.prompt_price || 0,
+        completion_price:   initialData?.completion_price || 0,
+        track_tokens: initialData?.track_tokens || false,
+        alert_email: initialData?.alert_email || "",
+        threshold: initialData?.threshold || 0,
+      }}
+      validationSchema={validationSchemas[step]}
+      onSubmit={(values) => {
+        if (!isLast) {
+          next(); // don't submit yet, just go to next step
+        } else {
+          onSubmit(values); // final submit
+        }
+      }}
+    >
+      {({ values }) => (
+        <Card className="px-6 py-8">
+          <Stepper steps={steps} active={step} />
 
-      {/* Step content */}
-      {step === 0 && <AgentInfoTab data={formData} onNext={save} />}
-      {step === 1 && <ModelConfigTab data={formData} onNext={save} />}
-      {step === 2 && <AlertingTab data={formData} onSubmit={onSubmit} />}
+          <Form className="space-y-6 mt-6">
+            {step === 0 && <AgentInfoTab />}
+            {step === 1 && <ModelConfigTab />}
+            {step === 2 && <AlertingTab />}
 
-      {/* Navigation Controls */}
-      <div className="flex justify-between items-center border-t pt-6 mt-8">
-        {/* Back button or placeholder */}
-        {step > 0 ? <Button onClick={back}>Back</Button> : <span />}
+            <div className="flex justify-between items-center border-t pt-6 mt-8">
+              {step > 0 ? (
+                <Button type="button" onClick={back}>
+                  Back
+                </Button>
+              ) : (
+                <span />
+              )}
 
-        {/* Right-aligned control group */}
-        <div className="flex gap-3">
-          {/* Step 1 (Model Setup): show Skip beside Next */}
-          {step === 1 && (
-            <>
-              <Button variant="secondary" onClick={skipStep}>
-                Skip
-              </Button>
-              <Button onClick={next}>Next</Button>
-            </>
-          )}
+              <div className="flex gap-3">
+                {isLast && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => onSubmit(values)}
+                    disabled={loading}
+                  >
+                    Skip & Submit
+                  </Button>
+                )}
 
-          {/* Step 2 (Final): show Skip & Save and Finish */}
-          {step === 2 && (
-            <>
-              <Button variant="secondary" onClick={skipAndSubmit}>
-                Skip & Save
-              </Button>
-              <Button onClick={() => onSubmit(formData)}>Finish</Button>
-            </>
-          )}
-
-          {/* Step 0: just Next */}
-          {step === 0 && <Button onClick={next}>Next</Button>}
-        </div>
-      </div>
-    </Card>
+                <Button type="submit" disabled={loading}>
+                  {isLast ? "Finish" : "Next"}
+                </Button>
+              </div>
+            </div>
+          </Form>
+        </Card>
+      )}
+    </Formik>
   );
 }

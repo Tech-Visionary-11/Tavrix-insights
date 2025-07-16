@@ -2,21 +2,30 @@
 import { useNavigate } from "react-router-dom";
 import AppLayout from "../../libs/components/layout/app-layout/AppLayout";
 import { AgentForm } from "./AgentForm";
+import { useCreateAgentMutation } from "./Agents.service";
 
 export default function AddAgentPage() {
   const navigate = useNavigate();
 
-  function handleCreate(values: any) {
-    /* TODO: replace with real API call */
-    console.log("Creating agent:", values);
+const [createAgent, { isLoading }] = useCreateAgentMutation();
+
+async function handleCreate(values: any) {
+  try {
+    console.log(values,"d");
+    
+    await createAgent(values).unwrap();
     navigate("/agents");
+  } catch (err) {
+    console.error("Failed to create agent:", err);
+    // Optional: show toast or error state here
   }
+}
 
   return (
     <AppLayout>
      
 
-      <AgentForm onSubmit={handleCreate} />
+<AgentForm onSubmit={handleCreate} loading={isLoading} />
     </AppLayout>
   );
 }

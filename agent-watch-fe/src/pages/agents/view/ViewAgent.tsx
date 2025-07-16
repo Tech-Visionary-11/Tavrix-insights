@@ -182,17 +182,6 @@ const logColumns: ColumnDef<Log>[] = [
 ];
   return (
     <AppLayout>
-      {/* Back  */}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => navigate("/agents")}
-        className="mb-4"
-      >
-        <ArrowLeft className="w-4 h-4 mr-1" />
-        Back
-      </Button>
-
       {/* Overview Card */}
       <Card className="mb-6">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">

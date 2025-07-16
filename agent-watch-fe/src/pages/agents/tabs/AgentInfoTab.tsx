@@ -1,43 +1,22 @@
-import { Formik, Form } from "formik";
-import * as Yup from "yup";
+import {  useFormikContext } from "formik";
+
 import { Input, Textarea, Select } from "../../../libs/components/ui";
 import { FormikField } from "../../../libs/components/layout/formik-field/FormikField";
 import { UploadCloud } from "lucide-react";
-import { useState } from "react";
 
-const schema = Yup.object({
-  name: Yup.string().required("Agent name is required"),
-  type: Yup.string().required("Agent type is required"),
-  status: Yup.string().required("Status is required"),
-});
 
-export function AgentInfoTab({ data, onNext }: any) {
-  const [avatarUrl, setAvatarUrl] = useState(data?.avatar || "");
+export function AgentInfoTab() {
+ const { setFieldValue, values } = useFormikContext<any>();
 
   const handleImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const url = URL.createObjectURL(file);
-      setAvatarUrl(url);
+      setFieldValue("avatar_url", url);
     }
   };
-
   return (
-    <Formik
-      initialValues={{
-        name: data?.name || "",
-        role: data?.role || "",
-        description: data?.description || "",
-        type: data?.type || "Chatbot",
-        status: data?.status || "active",
-        tags: data?.tags || "",
-      }}
-      validationSchema={schema}
-      onSubmit={(values) => onNext({ ...values, avatar: avatarUrl })}
-    >
-      {({ submitForm }) => (
-        <>
-          <Form className="space-y-6">
+   <>
             {/* Name */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -81,8 +60,9 @@ export function AgentInfoTab({ data, onNext }: any) {
                 name="type"
                 component={Select}
                 options={[
-                  { label: "Chatbot", value: "Chatbot" },
-                  { label: "Workflow", value: "Workflow" },
+                  { label: "Assistant", value: "assistant" },
+                  { label: "Workflow", value: "workflow" },
+                  { label: "Tool", value: "tool" },
                 ]}
               />
             </div>
@@ -97,7 +77,8 @@ export function AgentInfoTab({ data, onNext }: any) {
                 component={Select}
                 options={[
                   { label: "Active", value: "active" },
-                  { label: "Inactive", value: "inactive" },
+                  { label: "Paused", value: "paused" },
+                  { label: "Archived", value: "archived" },
                 ]}
               />
             </div>
@@ -117,9 +98,9 @@ export function AgentInfoTab({ data, onNext }: any) {
             {/* Avatar Upload */}
             <div className="flex items-center gap-6">
               <div className="flex-shrink-0">
-                {avatarUrl ? (
+                {values.avatarUrl ? (
                   <img
-                    src={avatarUrl}
+                    src={values.avatarUrl}
                     alt="avatar"
                     className="w-16 h-16 rounded-full object-cover border"
                   />
@@ -141,17 +122,7 @@ export function AgentInfoTab({ data, onNext }: any) {
                 </label>
               </div>
             </div>
-          </Form>
 
-          {/* Hidden button for parent form control */}
-          <button
-            type="button"
-            onClick={submitForm}
-            className="hidden"
-            id="agent-info-submit-trigger"
-          />
-        </>
-      )}
-    </Formik>
+    </>
   );
 }
