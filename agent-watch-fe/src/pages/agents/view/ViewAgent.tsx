@@ -1,8 +1,7 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
 import {
-  ArrowLeft,
   Filter,
+  Loader,
   Mail,
   MessageCircle,
   Pencil,
@@ -23,33 +22,16 @@ import {
   PolarRadiusAxis,
   Radar,
 } from "recharts";
-import type { AgentFormData } from "../AgentsTypes";
-import AppLayout from "../../../libs/components/layout/app-layout/AppLayout";
+ import AppLayout from "../../../libs/components/layout/app-layout/AppLayout";
 import { Badge, Card, Button, Select, Input, DataTable } from "../../../libs/components/ui";
 import type { ColumnDef } from "@tanstack/react-table";
+ import { useGetAgentQuery } from "../Agents.service";
 type Log = {
   timestamp: string;
   category: string;
   session: string;
   tag: string;
   message: string;
-};
-const dummyData: AgentFormData = {
-  name: "InvoiceBot",
-  role: "Handles invoice-related queries",
-  description:
-    "An AI-powered agent to handle invoice-related customer service questions.",
-  type: "Chatbot",
-  status: "active",
-  tags: "finance, internal",
-  avatar: "https://i.pravatar.cc/100",
-  modelType: "gpt-4o",
-  temperature: 0.7,
-  maxTokens: 1024,
-  topP: 1,
-  systemPrompt: "You are an invoice assistant.",
-  alertEmail: "alerts@company.com",
-  threshold: 5,
 };
 
 const metricsData = [
@@ -137,20 +119,19 @@ const logData = [
 ];
 
 export default function ViewAgentPage() {
-  const { agentId } = useParams();
+  const {id}= useParams();
   const navigate = useNavigate();
-  const [agent, setAgent] = useState<AgentFormData | null>(null);
 
-  useEffect(() => {
-    // Fetch agent by ID, using dummy for now
-    setAgent(dummyData);
-  }, [agentId]);
+  const { data: agent, isLoading, isError } = useGetAgentQuery(id, { skip: !id });
 
-  if (!agent) return null;
+  if (isLoading) return <Loader />;
+  if (isError || !agent) return <div>Error loading agent.</div>;
+
+console.log(agent,"d");
 
   const radarMetrics = [
   { metric: "Clarity", value: 82 },
-  { metric: "Helpfulness", value: 90 },
+  { metric: "Healpfulness", value: 90 },
   { metric: "Latency", value: 65 },
   { metric: "Success Rate", value: 93 },
   { metric: "Sentiment Score", value: 78 },
@@ -164,7 +145,8 @@ const latencyData = [
   { hour: "1 PM", latency: 220 },
   { hour: "2 PM", latency: 160 },
 ];
-  const isWorkflow = agent.type === "Workflow";
+  const isWorkflow = agent.type === "workflow";
+
 const logColumns: ColumnDef<Log>[] = [
   { accessorKey: "timestamp", header: "Time" },
   { accessorKey: "category", header: "Category" },
@@ -188,7 +170,7 @@ const logColumns: ColumnDef<Log>[] = [
           {/* Left ─ avatar + info */}
           <div className="flex items-start gap-4">
             <img
-              src={agent.avatar}
+              src={agent.avatar_url || "https://i.pravatar.cc/100"}
               alt="avatar"
               className="w-16 h-16 rounded-full border object-cover"
             />
@@ -235,7 +217,7 @@ const logColumns: ColumnDef<Log>[] = [
           <Button
             size="sm"
             variant="ghost"
-            onClick={() => navigate(`/agents/${agentId}/edit`)}
+            onClick={() => navigate(`/agents/${id}/edit`)}
           >
             <Pencil className="w-4 h-4 mr-1" />
             Edit
@@ -431,10 +413,10 @@ const logColumns: ColumnDef<Log>[] = [
         {/* Header Row */}
         <div className="flex flex-wrap justify-between items-center mb-6 gap-2">
           {/* Email chip */}
-          {agent.alertEmail ? (
+          {agent.alert_email ? (
             <div className="flex items-center gap-2 bg-indigo-50 px-3 py-1.5 rounded-full text-sm text-indigo-700 shadow-sm">
               <Mail className="w-4 h-4" />
-              {agent.alertEmail}
+              {agent.alert_email}
             </div>
           ) : (
             <div className="flex items-center gap-2 bg-gray-100 px-3 py-1.5 rounded-full text-sm text-gray-500 italic shadow-sm">
