@@ -50,20 +50,27 @@ async def close_session(
     if session.status != SessionStatusEnum.running:
         return session
 
-    # apply status
+    # Apply updates
     session.status = SessionStatusEnum(data.status)
 
-    # optional fall‑back totals
     if data.total_tokens is not None:
         session.total_tokens = data.total_tokens
+
     if data.cost_usd is not None:
         session.cost_usd = data.cost_usd
+
+    if data.output_payload is not None:
+        session.output_payload = data.output_payload
+
+    if data.notes is not None:
+        session.notes = data.notes
 
     session.ended_at = datetime.now(timezone.utc)
 
     await db.commit()
     await db.refresh(session)
     return session
+
 
 # ---------- delete ---------------------------------------------------------
 async def delete_session(db: AsyncSession, session_id: str) -> bool:

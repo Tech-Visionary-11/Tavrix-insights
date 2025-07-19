@@ -1,20 +1,13 @@
-from sqlalchemy import Column, String, Float, Boolean, Enum, DateTime
+from sqlalchemy import (
+    Column, String, Enum, DateTime, ForeignKey, Integer, JSON
+)
 from sqlalchemy.sql import func
-from sqlalchemy.orm import declarative_base
-from typing import Optional
+from sqlalchemy.orm import  relationship
 from enum import Enum as PyEnum
-from datetime import datetime
 import uuid
+from .base import Base
 
-Base = declarative_base()
-
-# ─── ENUMS ──────────────────────────────────────────────── #
-
-class ProviderEnum(PyEnum):
-    openai = "openai"
-    anthropic = "anthropic"
-    local = "local"
-    none = "none"
+# ─── ENUMS ───────────────────────────────────────────── #
 
 class AgentTypeEnum(PyEnum):
     assistant = "assistant"
@@ -26,30 +19,63 @@ class AgentStatusEnum(PyEnum):
     paused = "paused"
     archived = "archived"
 
-# ─── AGENT MODEL ─────────────────────────────────────────── #
+class ProviderEnum(PyEnum):
+    openai = "openai"
+    anthropic = "anthropic"
+    local = "local"
+    none = "none"
+
+class StepTypeEnum(PyEnum):
+    action = "action"
+    api_call = "api_call"
+    condition = "condition"
+    human_review = "human_review"
+
+
+# ─── AGENT MODEL ─────────────────────────────────────── #
 
 class Agent(Base):
     __tablename__ = "agents"
 
-    id: str = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
-    name: str = Column(String, nullable=False)
-    role: Optional[str] = Column(String)
-    description: Optional[str] = Column(String)
-    tags: Optional[str] = Column(String)
+    id = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
 
-    avatar_url: Optional[str] = Column(String)
+    name = Column(String, nullable=False)
+    role = Column(String)
+    description = Column(String)
+    tags = Column(String)
+    avatar_url = Column(String)
 
-    type: AgentTypeEnum = Column(Enum(AgentTypeEnum), nullable=False, default=AgentTypeEnum.assistant)
-    status: AgentStatusEnum = Column(Enum(AgentStatusEnum), nullable=False, default=AgentStatusEnum.active)
+    type = Column(Enum(AgentTypeEnum), nullable=False, default=AgentTypeEnum.assistant)
+    status = Column(Enum(AgentStatusEnum), nullable=False, default=AgentStatusEnum.active)
 
-    provider: ProviderEnum = Column(Enum(ProviderEnum), nullable=False)
-    model_name: Optional[str] = Column(String)
-    api_key: Optional[str] = Column(String)
+    # Agent-wide LLM + pricing config (null if not set)
+    modal_config = Column(JSON, nullable=True)
 
-    custom_pricing: bool = Column(Boolean, default=False)
-    prompt_price: Optional[float] = Column(Float)
-    completion_price: Optional[float] = Column(Float)
-    track_tokens: bool = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
-    created_at: Optional[datetime] = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at: Optional[datetime] = Column(DateTime(timezone=True), onupdate=func.now())
+    # Relationships
+    steps = relationship("Step", back_populates="agent", cascade="all, delete-orphan")
+
+
+# ─── STEP MODEL ──────────────────────────────────────── #
+
+class Step(Base):
+    __tablename__ = "steps"
+
+    id = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
+
+    agent_id = Column(String, ForeignKey("agents.id"), nullable=False)
+    code = Column(String, nullable=False, index=True)  # step_code for lookup
+
+    name = Column(String, nullable=False)
+    type = Column(Enum(StepTypeEnum), nullable=False)
+
+    description = Column(String)
+    success_criteria = Column(String)
+    order = Column(Integer, nullable=False)
+
+    # Step-specific LLM + pricing config (null if inherits from agent or not needed)
+    modal_config = Column(JSON, nullable=True)
+
+    agent = relationship("Agent", back_populates="steps")

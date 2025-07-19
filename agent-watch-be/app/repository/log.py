@@ -1,4 +1,3 @@
-# app/crud/log.py
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.models.log import SessionLog, LogTypeEnum
@@ -16,16 +15,24 @@ async def create_log(
     agent: Agent,
     data: LogCreate,
 ) -> SessionLog:
-    # Fill missing tokens/cost if needed
     tokens = data.tokens_used or 0
-    cost   = data.cost
+    cost = data.cost
 
-    if cost is None and agent.custom_pricing and data.log_type in {"prompt", "completion"}:
-        if data.log_type == "prompt":
-            cost = calculate_cost(tokens, 0, agent.prompt_price, agent.completion_price)
-        elif data.log_type == "completion":
-            cost = calculate_cost(0, tokens, agent.prompt_price, agent.completion_price)
+    modal_config = agent.modal_config or {}
+    custom_pricing = modal_config.get("custom_pricing", False)
 
+    # Optional pricing fields
+    prompt_price = modal_config.get("pricing", {}).get("prompt_price")
+    completion_price = modal_config.get("pricing", {}).get("completion_price")
+
+    # Cost calculation logic
+    if cost is None and custom_pricing and data.log_type in {"prompt", "completion"}:
+        if data.log_type == "prompt" and prompt_price is not None:
+            cost = calculate_cost(tokens, 0, prompt_price, completion_price)
+        elif data.log_type == "completion" and completion_price is not None:
+            cost = calculate_cost(0, tokens, prompt_price, completion_price)
+
+    # Create the log
     log = SessionLog(
         id=str(uuid4()),
         session_id=session.id,
@@ -33,14 +40,15 @@ async def create_log(
         content=data.content,
         tokens_used=tokens or None,
         cost=cost or None,
+        step_code=data.step_code,
+        meta_data=data.meta_data
     )
     db.add(log)
 
-    # ---- aggregate into Session ----
-    if tokens:
-        session.total_tokens += tokens
-    if cost:
-        session.cost_usd += cost
+    # Aggregate into session
+    session.total_tokens = (session.total_tokens or 0) + (tokens or 0)
+    session.cost_usd = (session.cost_usd or 0.0) + (cost or 0.0)
+
     if data.log_type == LogTypeEnum.error:
         session.error_count += 1
         if session.status == SessionStatusEnum.running:
@@ -49,6 +57,7 @@ async def create_log(
     await db.commit()
     await db.refresh(log)
     return log
+
 
 
 async def get_logs_by_session(db: AsyncSession, session_id: str) -> List[SessionLog]:

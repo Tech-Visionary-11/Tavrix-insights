@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from pydantic_settings import BaseSettings
 
-from app.models.agent import Base  # ⬅️ VERY IMPORTANT — import Base where Agent is defined
+from app.models.base import Base  # ⬅️ VERY IMPORTANT — import Base where Agent is defined
 
 class Settings(BaseSettings):
     database_url: str

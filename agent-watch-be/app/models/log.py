@@ -1,17 +1,9 @@
-# app/models/session_log.py
-from sqlalchemy import Column, String, Integer, Float, Enum, DateTime, ForeignKey
-from sqlalchemy.orm import relationship, declarative_base
+from sqlalchemy import Column, String, Integer, Float, Enum, DateTime, ForeignKey, Text, JSON
+from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from enum import Enum as PyEnum
 import uuid
-
-Base = declarative_base()
-
-class LogTypeEnum(PyEnum):
-    prompt      = "prompt"
-    completion  = "completion"
-    error       = "error"
-    info        = "info"
+from .base import Base
+from app.schemas.log import LogTypeEnum
 
 class SessionLog(Base):
     __tablename__ = "session_logs"
@@ -21,8 +13,11 @@ class SessionLog(Base):
     timestamp    = Column(DateTime(timezone=True), server_default=func.now())
 
     log_type     = Column(Enum(LogTypeEnum), nullable=False)
-    content      = Column(String)            # raw prompt / completion / stack‑trace
-    tokens_used  = Column(Integer)
-    cost         = Column(Float)
+    content      = Column(Text, nullable=True)         # supports large logs
+    tokens_used  = Column(Integer, nullable=True)
+    cost         = Column(Float, nullable=True)
+
+    step_code    = Column(String, nullable=True)       # track which step generates this log
+    meta_data = Column(JSON, nullable=True)
 
     session = relationship("Session", back_populates="logs")
