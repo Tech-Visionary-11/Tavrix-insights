@@ -40,19 +40,32 @@ class SessionUpdateClose(BaseModel):
         return self
 
 # ─── Output / Read ------------------------------------------------
-class SessionOut(SessionBase):
+class SessionOut(BaseModel):
     id: str
-    status: Literal["running", "completed", "error"]
+    agent_id: str
+    tag: Optional[str]
+    notes: Optional[str]
+    status: str
     total_tokens: int
     cost_usd: float
     error_count: int
     duration_seconds: Optional[float]
     started_at: datetime
     ended_at: Optional[datetime]
-    input_payload: Optional[Union[str, dict]] = None
-    output_payload: Optional[Union[str, dict]] = None
+    input_payload: Optional[Union[str, dict]]
+    output_payload: Optional[Union[str, dict]]
 
     model_config = {
         "orm_mode": True,
         "use_enum_values": True
     }
+    
+# For table pagination/filter (optional fields):
+class SessionQuery(BaseModel):
+    agent_id: Optional[str]
+    status: Optional[str]
+    tag: Optional[str]
+    since: Optional[datetime]
+    until: Optional[datetime]
+    limit: Optional[int] = 50
+    offset: Optional[int] = 0

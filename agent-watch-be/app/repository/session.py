@@ -28,17 +28,26 @@ async def create_session(db: AsyncSession, data: SessionCreate) -> SessionModel:
     await db.refresh(session)
     return session
 
-# ---------- list -----------------------------------------------------------
-async def get_sessions(
+async def get_sessions_table(
     db: AsyncSession,
-    agent_id: Optional[str] = None,
-    status:   Optional[str] = None
-) -> List[SessionModel]:
-    stmt = select(SessionModel)
-    if agent_id:
-        stmt = stmt.where(SessionModel.agent_id == agent_id)
+    agent_id: str,
+    status: str = None,
+    tag: str = None,
+    since: datetime = None,
+    until: datetime = None,
+    limit: int = 50,
+    offset: int = 0
+):
+    stmt = select(SessionModel).where(SessionModel.agent_id == agent_id)
     if status:
         stmt = stmt.where(SessionModel.status == status)
+    if tag:
+        stmt = stmt.where(SessionModel.tag == tag)
+    if since:
+        stmt = stmt.where(SessionModel.started_at >= since)
+    if until:
+        stmt = stmt.where(SessionModel.started_at < until)
+    stmt = stmt.order_by(SessionModel.started_at.desc()).limit(limit).offset(offset)
     res = await db.execute(stmt)
     return res.scalars().all()
 

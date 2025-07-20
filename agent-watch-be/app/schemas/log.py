@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, model_validator, field_validator
-from typing import Optional
+from typing import Optional, Dict
 from datetime import datetime
 from app.models.enum import LogTypeEnum
 class LogCreate(BaseModel):
@@ -33,7 +33,14 @@ class LogCreate(BaseModel):
 
 class LogOut(LogCreate):
     id: str
+    session_id: str
     timestamp: datetime
+    step_code: Optional[str]
+    log_type: str
+    content: Optional[str]
+    tokens_used: Optional[int]
+    cost: Optional[float]
+    meta_data: Optional[Dict]
 
     class Config:
         orm_mode = True

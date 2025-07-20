@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Path, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional, List
-
+from datetime import datetime
 from app.core.database import get_session
 from app.schemas.session import (
     SessionCreate,
@@ -27,11 +27,16 @@ async def create_session(
 # ---------- list -----------------------------------------------------------
 @router.get("/", response_model=List[SessionOut])
 async def list_sessions(
-    agent_id: Optional[str] = Query(None),
-    status_: Optional[str]  = Query(None, alias="status"),
+    agent_id: str = Query(...),
+    status: Optional[str] = Query(None),
+    tag: Optional[str] = Query(None),
+    since: Optional[datetime] = Query(None),
+    until: Optional[datetime] = Query(None),
+    limit: int = Query(50),
+    offset: int = Query(0),
     db: AsyncSession = Depends(get_session),
 ):
-    return await session_crud.get_sessions(db, agent_id, status_)
+    return await session_crud.get_sessions_table(db, agent_id, status, tag, since, until, limit, offset)
 
 # ---------- get one --------------------------------------------------------
 @router.get("/{session_id}", response_model=SessionOut)

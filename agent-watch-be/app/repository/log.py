@@ -74,10 +74,9 @@ async def create_log(
 
 
 
-async def get_logs_by_session(db: AsyncSession, session_id: str) -> List[SessionLog]:
-    res = await db.execute(
-        select(SessionLog).where(SessionLog.session_id == session_id).order_by(SessionLog.timestamp)
-    )
+async def get_logs_by_session(db: AsyncSession, session_id: str):
+    stmt = select(SessionLog).where(SessionLog.session_id == session_id).order_by(SessionLog.timestamp)
+    res = await db.execute(stmt)
     return res.scalars().all()
 
 
