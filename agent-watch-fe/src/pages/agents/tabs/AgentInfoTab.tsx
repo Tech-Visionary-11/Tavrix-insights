@@ -25,18 +25,6 @@ export function AgentInfoTab() {
               <FormikField name="name" component={Input} placeholder="e.g. InvoiceBot" />
             </div>
 
-            {/* Role */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Role / Use Case
-              </label>
-              <FormikField
-                name="role"
-                component={Textarea}
-                placeholder="e.g. Handles invoice-related queries"
-                rows={3}
-              />
-            </div>
 
             {/* Description */}
             <div>

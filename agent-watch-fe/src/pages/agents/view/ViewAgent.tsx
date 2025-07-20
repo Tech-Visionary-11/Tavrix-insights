@@ -127,7 +127,6 @@ export default function ViewAgentPage() {
   if (isLoading) return <Loader />;
   if (isError || !agent) return <div>Error loading agent.</div>;
 
-console.log(agent,"d");
 
   const radarMetrics = [
   { metric: "Clarity", value: 82 },
