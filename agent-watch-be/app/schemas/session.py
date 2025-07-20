@@ -1,42 +1,45 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from typing import Optional, Literal, Union
 from datetime import datetime
 
-
-# ---------- Base -----------------------------------------------------------
+# ─── Base -----------------------------------------------------------
 class SessionBase(BaseModel):
     agent_id: str
     tag: Optional[str] = None
     notes: Optional[str] = None
     input_payload: Optional[Union[str, dict]] = Field(
-        None, description="Input used to start the session (raw prompt or structured input)"
+        None, description="Input used to start the session"
     )
 
+    model_config = {
+        "use_enum_values": True
+    }
 
-# ---------- Create ---------------------------------------------------------
+    @model_validator(mode='after')
+    def validate_input_payload(self) -> 'SessionBase':
+        if self.input_payload is not None and not isinstance(self.input_payload, (dict, str)):
+            raise ValueError("input_payload must be a string or JSON (dict)")
+        return self
+
+# ─── Create ---------------------------------------------------------
 class SessionCreate(SessionBase):
-    """Start a new session (status implicitly 'running')."""
     pass
 
-
-# ---------- Close / Patch --------------------------------------------------
+# ─── Close / Patch --------------------------------------------------
 class SessionUpdateClose(BaseModel):
     status: Literal["completed", "error"]
-    total_tokens: Optional[int] = Field(
-        None, description="Optional fallback if no logs posted"
-    )
-    cost_usd: Optional[float] = Field(
-        None, description="Optional fallback if no logs posted"
-    )
-    output_payload: Optional[Union[str, dict]] = Field(
-        None, description="Result or final output from the session workflow"
-    )
-    notes: Optional[str] = Field(
-        None, description="Concise status or additional explanation on close (e.g., failure reason)"
-    )
+    total_tokens: Optional[int] = Field(None, description="Fallback if no logs")
+    cost_usd: Optional[float] = Field(None, description="Fallback if no logs")
+    output_payload: Optional[Union[str, dict]] = Field(None)
+    notes: Optional[str] = Field(default=None)
 
+    @model_validator(mode='after')
+    def validate_close(self) -> 'SessionUpdateClose':
+        if not self.status:
+            raise ValueError("status must be provided on session close")
+        return self
 
-# ---------- Response / Out -------------------------------------------------
+# ─── Output / Read ------------------------------------------------
 class SessionOut(SessionBase):
     id: str
     status: Literal["running", "completed", "error"]
@@ -49,5 +52,7 @@ class SessionOut(SessionBase):
     input_payload: Optional[Union[str, dict]] = None
     output_payload: Optional[Union[str, dict]] = None
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "orm_mode": True,
+        "use_enum_values": True
+    }

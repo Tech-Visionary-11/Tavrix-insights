@@ -1,7 +1,7 @@
 from typing import Optional, List, Dict
 from datetime import datetime
-from pydantic import BaseModel, Field
-from app.models.agent import AgentTypeEnum, AgentStatusEnum, StepTypeEnum
+from pydantic import BaseModel, Field, model_validator, field_validator
+from app.models.agent import AgentTypeEnum, AgentStatusEnum, StepTypeEnum, ProviderEnum
 
 # ─── StepBase ─── #
 class StepBase(BaseModel):
@@ -32,8 +32,30 @@ class AgentCreate(BaseModel):
         "use_enum_values": True
     }
 
+    @model_validator(mode='after')
+    def validate_steps(self) -> 'AgentCreate':
+        if self.steps:
+            codes = [s.code for s in self.steps]
+            orders = [s.order for s in self.steps]
+            if len(set(codes)) < len(self.steps):
+                raise ValueError("Duplicate step codes are not allowed")
+            if len(set(orders)) < len(self.steps):
+                raise ValueError("Duplicate step order values are not allowed")
+        return self
+
+    @field_validator("modal_config")
+    @classmethod
+    def validate_modal_config(cls, value):
+        if value:
+            if not isinstance(value, dict):
+                raise TypeError("modal_config must be a dictionary")
+            if "provider" in value and value["provider"] not in ProviderEnum.__members__:
+                raise ValueError(f"Invalid provider: {value['provider']}")
+        return value
+
+# ─── StepUpdate ─── #
 class StepUpdate(BaseModel):
-    id: Optional[str]  # Provide if updating; leave out for new step
+    id: Optional[str]
     code: str
     name: str
     type: StepTypeEnum
@@ -46,6 +68,7 @@ class StepUpdate(BaseModel):
         "use_enum_values": True
     }
 
+# ─── AgentUpdate ─── #
 class AgentUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
@@ -54,20 +77,28 @@ class AgentUpdate(BaseModel):
     type: Optional[AgentTypeEnum] = None
     status: Optional[AgentStatusEnum] = None
     modal_config: Optional[dict] = None
-    steps: Optional[List[StepUpdate]] = None  # 👈 Add this!
+    steps: Optional[List[StepUpdate]] = None
 
     model_config = {
         "use_enum_values": True
     }
 
-# ─── Read Out ─── #
+    @model_validator(mode='after')
+    def validate_updated_steps(self) -> 'AgentUpdate':
+        if self.steps:
+            codes = [s.code for s in self.steps]
+            if len(set(codes)) < len(self.steps):
+                raise ValueError("Step codes must be unique in update payload")
+        return self
+
+# ─── Output Schemas ─── #
 class StepOut(StepBase):
     id: str
     agent_id: str
 
     model_config = {
-        "from_attributes": True,
-        "use_enum_values": True
+        "use_enum_values": True,
+        "from_attributes": True
     }
 
 class AgentOut(AgentCreate):
@@ -77,6 +108,6 @@ class AgentOut(AgentCreate):
     steps: List[StepOut] = []
 
     model_config = {
-        "from_attributes": True,
-        "use_enum_values": True
+        "use_enum_values": True,
+        "from_attributes": True
     }

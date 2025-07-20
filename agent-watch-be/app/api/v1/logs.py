@@ -3,7 +3,8 @@ from fastapi import APIRouter, HTTPException, Depends, Path
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_session  # your DB dependency
 from app.schemas.log import LogCreate, LogOut
- 
+from sqlalchemy.orm import selectinload
+from sqlalchemy.future import select
 from app.models.agent import Agent
 from app.repository import log as log_crud
 from app.repository import session as session_crud  # you already have
@@ -22,17 +23,27 @@ async def create_log(
     data: LogCreate = ...,
     db: AsyncSession = Depends(get_session),
 ):
-    # Fetch session + agent
+    # Get session
     session = await session_crud.get_session(db, session_id)
     if not session:
         raise HTTPException(404, "Session not found")
 
-    agent = await db.get(Agent, session.agent_id)
+    # IF YOU NEED agent.steps, do eager loading here
+    result = await db.execute(
+        select(Agent).options(selectinload(Agent.steps)).where(Agent.id == session.agent_id)
+    )
+    agent = result.scalar_one_or_none()
+
     if not agent:
         raise HTTPException(404, "Agent missing")
 
-    return await log_crud.create_log(db, session, agent, data)
+    # Now this is safe 🧼
+    step_codes = {step.code for step in agent.steps}
 
+    if data.step_code not in step_codes:
+        raise HTTPException(400, f"Invalid step code: {data.step_code}")
+
+    return await log_crud.create_log(db, session, agent, data)
 
 @router.get(
     "/{session_id}/logs",

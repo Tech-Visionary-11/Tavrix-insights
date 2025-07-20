@@ -35,11 +35,11 @@ async def list_sessions(
 
 # ---------- get one --------------------------------------------------------
 @router.get("/{session_id}", response_model=SessionOut)
-async def get_session(
+async def get_session_by_id(
     session_id: str = Path(...),
     db: AsyncSession = Depends(get_session)
 ):
-    sess = await session_crud.get_session(db, session_id)
+    sess = await session_crud.get_session_by_id(db, session_id)
     if not sess:
         raise HTTPException(404, "Session not found")
     return sess

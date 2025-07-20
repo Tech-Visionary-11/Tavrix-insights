@@ -1,22 +1,36 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.models.log import SessionLog, LogTypeEnum
-from app.models.session import Session, SessionStatusEnum
+from app.models.session import Session as SessionModel, SessionStatusEnum
 from app.models.agent import Agent  # assuming the model path
 from app.schemas.log import LogCreate
 from typing import List
 from uuid import uuid4
-
+from fastapi import HTTPException
 from app.core.pricing import calculate_cost
 
 async def create_log(
     db: AsyncSession,
-    session: Session,
+    session: SessionModel,
     agent: Agent,
     data: LogCreate,
 ) -> SessionLog:
+    
+    # Duplicate check (optional optimization)
+    existing = await db.execute(
+        select(SessionLog).where(
+            SessionLog.session_id == session.id,
+            SessionLog.step_code == data.step_code,
+            SessionLog.content == data.content,
+            SessionLog.log_type == data.log_type
+        ).limit(1)
+    )
+    if existing.scalar_one_or_none():
+        raise HTTPException(409, detail="Duplicate log entry already exists")
+
+
     tokens = data.tokens_used or 0
-    cost = data.cost
+    cost = data.cost if data.cost is not None else 0.0
 
     modal_config = agent.modal_config or {}
     custom_pricing = modal_config.get("custom_pricing", False)

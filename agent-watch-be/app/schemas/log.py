@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator, field_validator
 from typing import Optional
 from datetime import datetime
 from app.models.enum import LogTypeEnum
@@ -19,6 +19,17 @@ class LogCreate(BaseModel):
     meta_data: Optional[dict] = Field(
         None, description="Additional info: model response, stack trace, decision explanation, etc."
     )
+    @model_validator(mode="after")
+    def validate_required_content(self):
+        if self.log_type in {"prompt", "completion", "error"} and not self.content:
+            raise ValueError(f"Log content required for {self.log_type} logs")
+        return self
+    @field_validator("tokens_used")
+    @classmethod
+    def validate_tokens(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("tokens_used cannot be negative")
+        return v
 
 class LogOut(LogCreate):
     id: str
