@@ -3,6 +3,7 @@ import AppLayout from "../../libs/components/layout/app-layout/AppLayout";
 import { AgentForm } from "./AgentForm";
 import { useGetAgentQuery, useUpdateAgentMutation } from "./Agents.service";
 import type { AgentUpdateInput } from "./AgentsTypes";
+import toast from "react-hot-toast";
 
 export default function EditAgentPage() {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ export default function EditAgentPage() {
     try {
       await updateAgent({ id, data: values }).unwrap();
       navigate("/agents");
+      toast.success("Agent updated successfully!");
     } catch (err) {
       console.error("Update failed:", err);
     }

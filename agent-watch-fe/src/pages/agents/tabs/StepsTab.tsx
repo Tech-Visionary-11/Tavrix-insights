@@ -45,10 +45,10 @@ export function StepsTab() {
               </div>
 
               <div className="grid sm:grid-cols-2 gap-4">
-                <FormikField name={`steps.${index}.name`} component={Input} label="Step Name" />
-                <FormikField name={`steps.${index}.code`} component={Input} label="Step Code (unique)" />
-                <FormikField name={`steps.${index}.type`} component={Select} label="Step Type" options={stepTypeOptions} />
-                <FormikField name={`steps.${index}.order`} component={Input} type="number" label="Execution Order" />
+                <FormikField name={`steps.${index}.name`} component={Input} label="Step Name" required/>
+                <FormikField name={`steps.${index}.code`} component={Input} label="Step Code (unique)" required />
+                <FormikField name={`steps.${index}.type`} component={Select} label="Step Type" options={stepTypeOptions} required />
+                <FormikField name={`steps.${index}.order`} component={Input} type="number" label="Execution Order" required />
               </div>
 
               <div className="grid sm:grid-cols-2 gap-4 mt-4">
@@ -69,8 +69,6 @@ export function StepsTab() {
                 <div className="mt-3">
                   <ModalConfigFields
                     namePrefix={`steps.${index}.modal_config`}
-                    heading={null}
-                    showWrapper={true}
                   />
                   <div className="text-xs text-gray-400 mt-1">
                     <span>By default, this step will use the agent's global config unless you specify something here.</span>

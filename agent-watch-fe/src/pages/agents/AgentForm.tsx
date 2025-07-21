@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
 import { Formik, Form } from "formik";
-import * as Yup from "yup";
 import { useState } from "react";
 import { AgentInfoTab } from "./tabs/AgentInfoTab";
 import { ModelConfigTab } from "./tabs/ModelConfigTab";
@@ -10,6 +9,11 @@ import { Stepper } from "../../libs/components/ui/stepper/Stepper";
 import { Button } from "../../libs/components/ui/button/Button";
 import { Card } from "../../libs/components/ui/cards/Card";
 import type { AgentCreateInput } from "./AgentsTypes";
+import {
+  agentInfoSchema,
+  alertingSchema,
+  modelConfigSchema,
+} from "./tabs/validationSchema";
 
 // 👉 Step labels
 const stepsWithWorkflow = ["Agent Info", "Model Setup", "Steps", "Alert Rules"];
@@ -18,80 +22,11 @@ const stepsWithoutWorkflow = ["Agent Info", "Model Setup", "Alert Rules"];
 // ✅ Validation schema for each step
 const validationSchemas = {
   withWorkflow: [
-    Yup.object({
-      name: Yup.string().required("Name is required"),
-      type: Yup.string().required("Type is required"),
-      status: Yup.string().required("Status is required"),
-    }),
-   Yup.object({
-  modal_config: Yup.object({
-    provider: Yup.string().required("Provider is required"),
-    model_name: Yup.string().when("provider", {
-      is: (val: string) => val !== "none",
-      then: (schema) => schema.required("Model name is required"),
-      otherwise: (schema) => schema.optional(),
-    }),
-    api_key: Yup.string().when(["provider", "custom_pricing"], {
-      is: (provider: string, custom: boolean) =>
-        ["openai", "anthropic"].includes(provider) && !custom,
-      then: (schema) => schema.required("API Key is required"),
-      otherwise: (schema) => schema.optional(),
-    }),
-    custom_pricing: Yup.boolean(),
-    prompt_price: Yup.number().when("custom_pricing", {
-      is: true,
-      then: (schema) => schema.required("Prompt token price is required").min(0),
-      otherwise: (schema) => schema.optional(),
-    }),
-    completion_price: Yup.number().when("custom_pricing", {
-      is: true,
-      then: (schema) => schema.required("Completion token price is required").min(0),
-      otherwise: (schema) => schema.optional(),
-    }),
-    track_tokens: Yup.boolean(),
-  }),
-}),
-
-    Yup.object({}), // Steps tab validation (optional)
-    Yup.object({}), // Alerting tab
+    agentInfoSchema,
+    modelConfigSchema,
+    alertingSchema,
   ],
-  withoutWorkflow: [
-    Yup.object({
-      name: Yup.string().required("Name is required"),
-      type: Yup.string().required("Type is required"),
-      status: Yup.string().required("Status is required"),
-    }),
-   Yup.object({
-  modal_config: Yup.object({
-    provider: Yup.string().required("Provider is required"),
-    model_name: Yup.string().when("provider", {
-      is: (val: string) => val !== "none",
-      then: (schema) => schema.required("Model name is required"),
-      otherwise: (schema) => schema.optional(),
-    }),
-    api_key: Yup.string().when(["provider", "custom_pricing"], {
-      is: (provider: string, custom: boolean) =>
-        ["openai", "anthropic"].includes(provider) && !custom,
-      then: (schema) => schema.required("API Key is required"),
-      otherwise: (schema) => schema.optional(),
-    }),
-    custom_pricing: Yup.boolean(),
-    prompt_price: Yup.number().when("custom_pricing", {
-      is: true,
-      then: (schema) => schema.required("Prompt token price is required").min(0),
-      otherwise: (schema) => schema.optional(),
-    }),
-    completion_price: Yup.number().when("custom_pricing", {
-      is: true,
-      then: (schema) => schema.required("Completion token price is required").min(0),
-      otherwise: (schema) => schema.optional(),
-    }),
-    track_tokens: Yup.boolean(),
-  }),
-}),
-
-    Yup.object({}), // Alert tab
-  ],
+  withoutWorkflow: [agentInfoSchema, modelConfigSchema, alertingSchema],
 };
 
 export function AgentForm({
@@ -131,10 +66,8 @@ export function AgentForm({
           api_key: initialData?.modal_config?.api_key || "",
           custom_pricing: initialData?.modal_config?.custom_pricing || false,
           pricing: {
-            prompt_price:
-              initialData?.modal_config?.prompt_price || 0,
-            completion_price:
-              initialData?.modal_config?.completion_price || 0,
+            prompt_price: initialData?.modal_config?.prompt_price || 0,
+            completion_price: initialData?.modal_config?.completion_price || 0,
           },
           track_tokens: initialData?.modal_config?.track_tokens || false,
         },
@@ -142,15 +75,13 @@ export function AgentForm({
         threshold: initialData?.threshold || 0,
         steps: initialData?.steps || [],
       }}
-      validationSchema={(values:any) => {
+      validationSchema={(values: any) => {
         const isWorkflow = values?.type === "workflow";
         return isWorkflow
           ? validationSchemas.withWorkflow[step]
           : validationSchemas.withoutWorkflow[step];
       }}
       onSubmit={(values) => {
-        console.log("Submitting values:", values);
-        
         const isWorkflow = values.type === "workflow";
         const steps = isWorkflow ? stepsWithWorkflow : stepsWithoutWorkflow;
         if (step < steps.length - 1) {
@@ -160,10 +91,11 @@ export function AgentForm({
         }
       }}
     >
-      {({ values ,errors}) => {
+      {({ values }) => {
         const isWorkflow = values.type === "workflow";
-        const stepLabels = isWorkflow ? stepsWithWorkflow : stepsWithoutWorkflow;
-  console.log("Formik errors:", errors,values);       // All validation errors
+        const stepLabels = isWorkflow
+          ? stepsWithWorkflow
+          : stepsWithoutWorkflow;
 
         return (
           <Card className="px-6 py-8">
@@ -182,19 +114,28 @@ export function AgentForm({
 
               {/* Footer Actions */}
               <div className="flex justify-between items-center border-t pt-6 mt-8">
-                <Button type="button" onClick={back}>
+                <Button type="button" onClick={back} variant="secondary">
                   Back
                 </Button>
 
                 <div className="flex gap-3">
-                  {step === stepLabels.length - 1 && (
+                  {/* Show Skip button only on relevant steps */}
+                  {(step === 1 || step === stepLabels.length - 1) && (
                     <Button
                       variant="secondary"
                       type="button"
                       disabled={loading}
-                      onClick={() => onSubmit(values)}
+                      onClick={() => {
+                        // If it's not the final step, advance form
+                        if (step < stepLabels.length - 1) {
+                          setStep(step + 1);
+                        } else {
+                          onSubmit(values); // Final submit
+                        }
+                      }}
                     >
-                      Skip & Submit
+                      Skip &{" "}
+                      {step === stepLabels.length - 1 ? "Submit" : "Next"}
                     </Button>
                   )}
                   <Button type="submit" disabled={loading}>

@@ -79,7 +79,7 @@ export function ModalConfigFields({
         <div className="grid sm:grid-cols-2 gap-6">
           <div>
             <FormikField
-              name={getName("pricing.prompt_price")}
+              name={getName("prompt_price")}
               label="Prompt Token Price"
               component={Input}
               type="number"
@@ -92,7 +92,7 @@ export function ModalConfigFields({
 
           <div>
             <FormikField
-              name={getName("pricing.completion_price")}
+              name={getName("completion_price")}
               label="Completion Token Price"
               component={Input}
               type="number"

@@ -7,7 +7,7 @@ export function ModelConfigTab() {
         <strong>This configuration applies to the agent as a whole.</strong> <br/>
         Each step can override these settings if needed.
       </p>
-      <ModalConfigFields namePrefix="modal_config" showWrapper={true} />
+      <ModalConfigFields namePrefix="modal_config" />
     </div>
   );
 }
