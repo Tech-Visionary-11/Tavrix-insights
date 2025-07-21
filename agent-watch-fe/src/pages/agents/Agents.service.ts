@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type { Agent,AgentCreateInput,AgentUpdateInput } from './AgentsTypes'; // Adjust the import path as necessary
+import type { Agent, AgentCreateInput, AgentUpdateInput } from './AgentsTypes';
 
 export const agentApi = createApi({
   reducerPath: 'agentApi',
@@ -18,7 +18,7 @@ export const agentApi = createApi({
       providesTags: (result, error, id) => [{ type: 'Agent', id }],
     }),
 
-    createAgent: builder.mutation<AgentCreateInput,any>({
+    createAgent: builder.mutation<AgentCreateInput, any>({
       query: (data) => ({
         url: 'agents',
         method: 'POST',
@@ -44,12 +44,12 @@ export const agentApi = createApi({
       invalidatesTags: ['Agent'],
     }),
   }),
-})
+});
 
 export const {
-useGetAgentsQuery,
+  useGetAgentsQuery,
   useGetAgentQuery,
   useCreateAgentMutation,
   useUpdateAgentMutation,
   useDeleteAgentMutation,
-} = agentApi
+} = agentApi;

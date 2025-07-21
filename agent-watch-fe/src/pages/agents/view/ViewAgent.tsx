@@ -26,6 +26,8 @@ import {
 import { Badge, Card, Button, Select, Input, DataTable } from "../../../libs/components/ui";
 import type { ColumnDef } from "@tanstack/react-table";
  import { useGetAgentQuery } from "../Agents.service";
+import { WorkflowStepVisualizer } from "./WorkflowStepVisualizer";
+import { useGetStepperByIdQuery } from "./Analytics.service";
 type Log = {
   timestamp: string;
   category: string;
@@ -123,6 +125,7 @@ export default function ViewAgentPage() {
   const navigate = useNavigate();
 
   const { data: agent, isLoading, isError } = useGetAgentQuery(id, { skip: !id });
+const { data:workflowStepData} = useGetStepperByIdQuery(id, {skip: !id});
 
   if (isLoading) return <Loader />;
   if (isError || !agent) return <div>Error loading agent.</div>;
@@ -187,10 +190,7 @@ const logColumns: ColumnDef<Log>[] = [
                 </Badge>
               </div>
 
-              {/* role (optional) */}
-              {agent.role && (
-                <p className="text-sm text-gray-600 mt-1">{agent.role}</p>
-              )}
+            
 
               {/* description (optional) */}
               {agent.description && (
@@ -257,35 +257,7 @@ const logColumns: ColumnDef<Log>[] = [
       </div>
     </Card>
   ) : (
-    <Card title="Workflow Execution Status">
-      <div className="w-full h-2 bg-gray-200 rounded-full mb-6">
-        <div className="h-2 bg-sky-500 rounded-full" style={{ width: "60%" }} />
-      </div>
-
-      <div className="flex justify-between items-center text-sm text-gray-600">
-        {[
-          { label: "Extract Data", status: "completed" },
-          { label: "Process Information", status: "completed" },
-          { label: "Generate Report", status: "in_progress" },
-          { label: "Store Results", status: "pending" },
-          { label: "Send Notification", status: "pending" },
-        ].map((step, idx) => (
-          <div key={idx} className="flex flex-col items-center gap-1 text-center w-24">
-            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white ${
-              step.status === "completed"
-                ? "bg-green-500"
-                : step.status === "in_progress"
-                ? "bg-sky-500 animate-pulse"
-                : "bg-gray-300"
-            }`}>
-              {step.status === "completed" ? "✓" : step.status === "in_progress" ? "⚙️" : "⏳"}
-            </div>
-            <span className="text-xs font-medium">{step.label}</span>
-            <span className="text-[11px] text-gray-400 capitalize">{step.status.replace("_", " ")}</span>
-          </div>
-        ))}
-      </div>
-    </Card>
+    <WorkflowStepVisualizer stepsData={workflowStepData || []} />
   )
 }
 
