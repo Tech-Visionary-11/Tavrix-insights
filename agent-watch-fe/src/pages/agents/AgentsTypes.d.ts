@@ -58,3 +58,14 @@ export type AgentCreateInput = Omit<Agent, 'id' | 'created_at' | 'updated_at'>;
  * Partial payload for editing/updating an agent
  */
 export type AgentUpdateInput = Partial<AgentCreateInput>;
+
+
+export type SessionQueryParams = {
+  agent_id?: string;
+  status?: string;
+  tag?: string;
+  since?: string; // ISO format: 2024-01-01T00:00:00Z
+  until?: string;
+  limit?: number;
+  offset?: number;
+};

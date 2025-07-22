@@ -55,7 +55,7 @@ async def list_logs(
     db: AsyncSession = Depends(get_session),
 ):
     # ensure session exists
-    session = await session_crud.get_session(db, session_id)
+    session = await session_crud.get_session_by_id(db, session_id)
     if not session:
         raise HTTPException(404, "Session not found")
 

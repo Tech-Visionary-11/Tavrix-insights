@@ -12,7 +12,8 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-engine = create_async_engine(settings.database_url, echo=False)
+engine = create_async_engine(settings.database_url, echo=False,    connect_args={"ssl": "require"},  # This is the key part
+)
 
 AsyncSessionLocal = sessionmaker(
     bind=engine,
@@ -24,7 +25,6 @@ AsyncSessionLocal = sessionmaker(
 async def init_db() -> None:
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-        print("✅ Tables created")
 
 async def get_session() -> AsyncSession:
     async with AsyncSessionLocal() as session:

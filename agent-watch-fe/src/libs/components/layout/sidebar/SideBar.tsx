@@ -43,6 +43,7 @@ export function Sidebar() {
       <aside
         className={`fixed md:static top-0 left-0 z-40 h-full
           flex flex-col
+          "w-64 shrink-0
           bg-white shadow-md ring-1 ring-gray-100
           transition-all duration-300
           ${isOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0

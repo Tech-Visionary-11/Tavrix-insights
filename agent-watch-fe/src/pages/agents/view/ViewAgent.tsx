@@ -1,6 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
 import {
-  Filter,
   Loader,
   Mail,
   MessageCircle,
@@ -13,9 +12,6 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  BarChart,
-  Bar,
-  CartesianGrid,
   RadarChart,
   PolarGrid,
   PolarAngleAxis,
@@ -23,36 +19,13 @@ import {
   Radar,
 } from "recharts";
  import AppLayout from "../../../libs/components/layout/app-layout/AppLayout";
-import { Badge, Card, Button, Select, Input, DataTable } from "../../../libs/components/ui";
-import type { ColumnDef } from "@tanstack/react-table";
+import { Badge, Card, Button } from "../../../libs/components/ui";
  import { useGetAgentQuery } from "../Agents.service";
 import { WorkflowStepVisualizer } from "./WorkflowStepVisualizer";
 import { useGetStepperByIdQuery } from "./Analytics.service";
-type Log = {
-  timestamp: string;
-  category: string;
-  session: string;
-  tag: string;
-  message: string;
-};
+import { UsageMetricsSection } from "./UsageMetricsSection";
+import { SessionTableWithLogs } from "./SessionTableWithLogs";
 
-const metricsData = [
-  { time: "10 AM", usage: 5 },
-  { time: "11 AM", usage: 10 },
-  { time: "12 PM", usage: 8 },
-  { time: "1 PM", usage: 12 },
-  { time: "2 PM", usage: 6 },
-];
-const summaryStats = {
-  total: 41,
-  peakHour: "1 PM",
-  failures: 3,
-};
-
-const barChartData = [
-  { label: "Success", count: 38 },
-  { label: "Failure", count: 3 },
-];
 // ‟dummyAlertRules” for Quick Alert Setup
 const dummyAlertRules = [
   {
@@ -96,29 +69,6 @@ const dummyRecentAlerts = [
     time: "1 hour ago",
   },
 ] as const;
-const logData = [
-  {
-    timestamp: "2025-07-12 14:33",
-    category: "Prompt",
-    session: "INV-2210",
-    tag: "finance",
-    message: "What was the last invoice amount?",
-  },
-  {
-    timestamp: "2025-07-12 14:34",
-    category: "Response",
-    session: "INV-2210",
-    tag: "finance",
-    message: "The last invoice amount was $1,250 for May.",
-  },
-  {
-    timestamp: "2025-07-12 14:35",
-    category: "Error",
-    session: "INV-2210",
-    tag: "finance",
-    message: "Timeout while fetching payment history.",
-  },
-];
 
 export default function ViewAgentPage() {
   const {id}= useParams();
@@ -149,21 +99,6 @@ const latencyData = [
 ];
   const isWorkflow = agent.type === "workflow";
 
-const logColumns: ColumnDef<Log>[] = [
-  { accessorKey: "timestamp", header: "Time" },
-  { accessorKey: "category", header: "Category" },
-  { accessorKey: "session",  header: "Session"  },
-  { accessorKey: "tag",      header: "Tag"      },
-  {
-    accessorKey: "message",
-    header: "Message",
-    cell: ({ row }) => (
-      <span className="truncate block max-w-xs">
-        {row.original.message}
-      </span>
-    ),
-  },
-];
   return (
     <AppLayout>
       {/* Overview Card */}
@@ -262,124 +197,10 @@ const logColumns: ColumnDef<Log>[] = [
 }
 
 {/* ✅ Logs Table (Always Visible) */}
-<Card title="Recent Logs" className="mt-10">
-  {/* Filter Bar */}
-  <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
-    <Input placeholder="Search by Session ID or Step" className="sm:max-w-sm" />
-
-    {/* Category Select */}
-    <div className="relative">
-      <Filter className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-      <Select
-        className="pl-9"
-        wrapperClassName="sm:w-44"
-        options={[
-          { label: "All Categories", value: "" },
-          { label: "Prompt", value: "Prompt" },
-          { label: "Response", value: "Response" },
-          { label: "Error", value: "Error" },
-          { label: "Step", value: "Step" },
-        ]}
-        onChange={(e) => console.log("Category:", e.target.value)}
-      />
-    </div>
-
-    {/* Tag Select */}
-    <Select
-      wrapperClassName="sm:w-40"
-      options={[
-        { label: "All Tags", value: "" },
-        { label: "Finance", value: "finance" },
-        { label: "Internal", value: "internal" },
-        { label: "L1", value: "L1" },
-      ]}
-      onChange={(e) => console.log("Tag:", e.target.value)}
-    />
-  </div>
-
-  {/* Table */}
-  <DataTable
-    data={logData}
-    columns={logColumns}
-    maxHeight="360px"   /* makes body scroll if long */
-  />
-</Card>
+ <SessionTableWithLogs/>
 
 
-      <Card title="Usage Metrics" className="mt-6">
-        {/* Metrics Summary Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {[
-            {
-              label: "Total Requests",
-              value: summaryStats.total,
-              color: "text-indigo-600 bg-indigo-50",
-            },
-            {
-              label: "Peak Hour",
-              value: summaryStats.peakHour,
-              color: "text-green-600 bg-green-50",
-            },
-            {
-              label: "Failures",
-              value: summaryStats.failures,
-              color: "text-red-600 bg-red-50",
-            },
-          ].map(({ label, value, color }, idx) => (
-            <div
-              key={idx}
-              className={`rounded-xl p-5 shadow-sm ${color} transition hover:shadow-md`}
-            >
-              <p className="text-sm text-gray-500">{label}</p>
-              <p className="mt-1 text-2xl font-bold">{value}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Chart Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Line Chart */}
-          <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-2">
-              Hourly Request Trend
-            </h4>
-            <div className="bg-gray-50 rounded-lg p-4 shadow-inner">
-              <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={metricsData}>
-                  <XAxis dataKey="time" />
-                  <YAxis />
-                  <Tooltip />
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <Line
-                    type="monotone"
-                    dataKey="usage"
-                    stroke="#4f46e5"
-                    strokeWidth={2}
-                    dot={{ r: 4 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* Bar Chart */}
-          <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-2">
-              Success vs Failure
-            </h4>
-            <div className="bg-gray-50 rounded-lg p-4 shadow-inner">
-              <ResponsiveContainer width="100%" height={250}>
-                <BarChart data={barChartData}>
-                  <XAxis dataKey="label" />
-                  <YAxis allowDecimals={false} />
-                  <Tooltip />
-                  <Bar dataKey="count" fill="#6366f1" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
-      </Card>
+       <UsageMetricsSection/>
       <Card title="Alerting Configuration" className="mt-6">
         {/* Header Row */}
         <div className="flex flex-wrap justify-between items-center mb-6 gap-2">
