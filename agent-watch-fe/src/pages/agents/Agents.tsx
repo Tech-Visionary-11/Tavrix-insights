@@ -18,7 +18,7 @@ import { StatCard } from "../../libs/components/ui/cards/StatCard";
 import { Button } from "../../libs/components/ui/button/Button";
 import { DataTable, Select } from "../../libs/components/ui";
 import { useGetAgentsQuery } from "./Agents.service";
- 
+import { useGetAgentHighlightsQuery } from "./view/Analytics.service";
 
 type Agent = {
   id: string;
@@ -35,7 +35,7 @@ export default function Agents() {
   const navigate = useNavigate();
 
   const { data: agents = [], isLoading, isError } = useGetAgentsQuery({});
-
+  const { data: highlights } = useGetAgentHighlightsQuery();
   const filtered =
     statusFilter === "all"
       ? agents
@@ -127,18 +127,24 @@ export default function Agents() {
   ];
 
   if (isLoading) return <p className="p-6">Loading agents...</p>;
-  if (isError) return <p className="p-6 text-red-500">Failed to load agents.</p>;
+  if (isError)
+    return <p className="p-6 text-red-500">Failed to load agents.</p>;
 
   return (
     <AppLayout>
+      {/* ── Metric Cards ── */}
       {/* ── Metric Cards ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-8">
         <Card className="p-4">
           <StatCard
             icon={<Activity size={18} />}
             title="Most Active Agent"
-            value="—"
-            description="Coming soon"
+            value={highlights?.most_active?.agent?.name || "—"}
+            description={
+              highlights?.most_active?.agent
+                ? `${highlights.most_active.agent.session_count} sessions`
+                : "No sessions yet"
+            }
           />
         </Card>
 
@@ -146,8 +152,12 @@ export default function Agents() {
           <StatCard
             icon={<DollarSign size={18} />}
             title="Highest Cost Agent"
-            value="—"
-            description="Coming soon"
+            value={highlights?.most_costly_agent?.name || "—"}
+            description={
+              highlights?.most_costly_agent
+                ? `$${highlights.most_costly_agent.total_cost.toFixed(4)} total`
+                : "No session cost recorded"
+            }
           />
         </Card>
 
@@ -155,8 +165,12 @@ export default function Agents() {
           <StatCard
             icon={<AlertTriangle size={18} />}
             title="Most Failing Agent"
-            value="—"
-            description="Coming soon"
+            value={highlights?.most_failures?.agent?.name || "—"}
+            description={
+              highlights?.most_failures?.agent
+                ? `${highlights.most_failures.agent.failure_count} failed sessions`
+                : "No failures"
+            }
             descriptionColor="red"
           />
         </Card>

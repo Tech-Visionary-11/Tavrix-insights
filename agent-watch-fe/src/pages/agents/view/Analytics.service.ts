@@ -32,6 +32,30 @@ getCostSummary: builder.query<
     params: { agent_id },
   }),
 }),
+ getAgentHighlights: builder.query<{
+      total_cost: number;
+      most_costly_agent: {
+        id: string;
+        name: string;
+        total_cost: number;
+      } | null;
+      most_failures: {
+        agent: {
+          id: string;
+          name: string;
+          failure_count: number;
+        } | null;
+      };
+      most_active: {
+        agent: {
+          id: string;
+          name: string;
+          session_count: number;
+        } | null;
+      };
+    }, void>({
+      query: () => "/highlights",
+    }),
   }), 
 });
 
@@ -39,5 +63,6 @@ export const {
   useGetStepperByIdQuery,
   useGetSessionVolumeQuery,
   useGetSessionStatusPieQuery,
-  useGetCostSummaryQuery
+  useGetCostSummaryQuery,
+  useGetAgentHighlightsQuery
 } = analyticsApi;

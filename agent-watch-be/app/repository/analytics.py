@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func,case
+from sqlalchemy import select, func,case,desc
 from sqlalchemy.orm import selectinload
 from typing import List
 from app.models.agent import Agent
@@ -8,6 +8,7 @@ from app.schemas.analytics import StepperStep
 from datetime import date as Date
 from app.schemas.analytics import SessionVolumeEntry
 from app.models.session import Session as SessionModel, SessionStatusEnum
+
 
 async def get_stepper_data_for_agent(agent_id: str, db: AsyncSession) -> List[StepperStep]:
     # Eagerly load agent and its steps
@@ -184,4 +185,67 @@ async def get_cost_summary(
         "total_cost": float(row.total_cost or 0),
         "session_count": row.session_count,
         "avg_cost_per_session": float(row.avg_cost_per_session or 0)
+    }
+
+async def get_total_cost_and_top_agent(db: AsyncSession):
+    # Total cost across all agents
+    total_cost_stmt = select(func.coalesce(func.sum(SessionModel.cost_usd), 0.0))
+    result = await db.execute(total_cost_stmt)
+    total_cost = result.scalar()
+    # Most costly agent
+    stmt = (
+        select(Agent.id, Agent.name, func.coalesce(func.sum(SessionModel.cost_usd), 0.0).label("total_cost"))
+        .join(SessionModel, SessionModel.agent_id == Agent.id)
+        .group_by(Agent.id)
+        .order_by(desc("total_cost"))
+        .limit(1)
+    )
+
+    result = await db.execute(stmt)
+    top_agent = result.first()
+
+    return {
+        "total_cost": round(total_cost or 0, 4),
+        "most_costly_agent": {
+            "id": top_agent.id,
+            "name": top_agent.name,
+            "total_cost": round(top_agent.total_cost, 4)
+        } if top_agent else None
+    }
+async def get_agent_with_most_failures(db: AsyncSession):
+    stmt = (
+        select(Agent.id, Agent.name, func.count(SessionModel.id).label("failure_count"))
+        .join(SessionModel, SessionModel.agent_id == Agent.id)
+        .where(SessionModel.status == "error")
+        .group_by(Agent.id)
+        .order_by(desc("failure_count"))
+        .limit(1)
+    )
+    result = await db.execute(stmt)
+    row = result.first()
+
+    return {
+        "agent": {
+            "id": row.id,
+            "name": row.name,
+            "failure_count": row.failure_count
+        } if row else None
+    }
+async def get_agent_with_most_sessions(db: AsyncSession):
+    stmt = (
+        select(Agent.id, Agent.name, func.count(SessionModel.id).label("session_count"))
+        .join(SessionModel, SessionModel.agent_id == Agent.id)
+        .group_by(Agent.id)
+        .order_by(desc("session_count"))
+        .limit(1)
+    )
+    result = await db.execute(stmt)
+    row = result.first()
+
+    return {
+        "agent": {
+            "id": row.id,
+            "name": row.name,
+            "session_count": row.session_count
+        } if row else None
     }

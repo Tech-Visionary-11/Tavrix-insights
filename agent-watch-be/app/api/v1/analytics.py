@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from app.core.database import get_session
 from app.schemas.analytics import StepperStep,SessionVolumeEntry,CostSummary
-from app.repository.analytics import get_session_status_breakdown,get_session_volume_timeline,get_stepper_data_for_agent,get_cost_summary
+from app.repository.analytics import get_session_status_breakdown,get_session_volume_timeline,get_stepper_data_for_agent,get_cost_summary, get_agent_with_most_failures, get_agent_with_most_sessions,get_total_cost_and_top_agent
 from datetime import date
 
 router = APIRouter(prefix="/analytics", tags=["Analytics / Charts"])
@@ -48,3 +48,12 @@ async def cost_summary(
     db: AsyncSession = Depends(get_session)
 ):
     return await get_cost_summary(db, agent_id, since, until)
+
+
+@router.get("/highlights")
+async def agent_highlights(db: AsyncSession = Depends(get_session)):
+    return {
+        **(await get_total_cost_and_top_agent(db)),
+        "most_failures": await get_agent_with_most_failures(db),
+        "most_active": await get_agent_with_most_sessions(db),
+    }
