@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from app.core.database import init_db
-from app.api.v1 import agents ,sessions,  logs, analytics #alerts
+from app.api.v1 import agents ,sessions,  logs, analytics,user,org,auth #alerts
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="Agent Watch API")
@@ -13,6 +13,9 @@ app.add_middleware (
     allow_headers=["*"]
 )
 
+app.include_router(auth.router)
+app.include_router(org.router)
+app.include_router(user.router)
 app.include_router(agents.router)
 app.include_router(sessions.router)
 app.include_router(logs.router)
