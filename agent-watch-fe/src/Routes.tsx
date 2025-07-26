@@ -1,10 +1,12 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom';
-import Dashboard from './pages/dashboard/Dashboard';
-import Agents from './pages/agents/Agents';
-import AddAgentPage from './pages/agents/AddAgent';
-import EditAgentPage from './pages/agents/EditAgent';
-import ViewAgentPage from './pages/agents/view/ViewAgent';
-
+import { createBrowserRouter, Navigate } from "react-router-dom";
+import { RequireAuth } from "./RequireAuth";
+import Agents from "./pages/agents/Agents";
+import Dashboard from "./pages/dashboard/Dashboard";
+import AddAgentPage from "./pages/agents/AddAgent";
+import EditAgentPage from "./pages/agents/EditAgent";
+import ViewAgentPage from "./pages/agents/view/ViewAgent";
+import { SignIn } from "./pages/login/SignIn";
+import { SignUp } from "./pages/login/SignUp";
 
 export const router = createBrowserRouter([
   {
@@ -13,28 +15,58 @@ export const router = createBrowserRouter([
   },
   {
     path: "/dashboard",
-    element: <Dashboard />,
+    element: (
+      <RequireAuth>
+        <Dashboard />
+      </RequireAuth>
+    ),
     handle: { name: "Dashboard", isParent: true },
   },
   {
     path: "/agents",
-    element: <Agents />,
+    element: (
+      <RequireAuth>
+        <Agents />
+      </RequireAuth>
+    ),
     handle: { name: "Agents", isParent: true },
   },
   {
     path: "/agents/add",
-    element: <AddAgentPage />,
+    element: (
+      <RequireAuth>
+        <AddAgentPage />
+      </RequireAuth>
+    ),
     handle: { name: "Add Agent", isParent: false },
   },
   {
     path: "/agents/edit/:id",
-    element: <EditAgentPage />,
+    element: (
+      <RequireAuth>
+        <EditAgentPage />
+      </RequireAuth>
+    ),
     handle: { name: "Edit Agent", isParent: false },
   },
   {
     path: "/agents/view/:id",
-    element: <ViewAgentPage />,
+    element: (
+      <RequireAuth>
+        <ViewAgentPage />
+      </RequireAuth>
+    ),
     handle: { name: "View Agent", isParent: false },
+  },
+  {
+    path: "/signin",
+    element: <SignIn />,
+    handle: { name: "signin", isParent: false },
+  },
+   {
+    path: "/signup",
+    element: <SignUp />,
+    handle: { name: "Sign Up", isParent: false },
   },
   {
     path: "*",

@@ -5,6 +5,13 @@ export const agentApi = createApi({
   reducerPath: 'agentApi',
   baseQuery: fetchBaseQuery({
     baseUrl: import.meta.env.VITE_API_BASE_URL,
+    prepareHeaders: (headers) => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        headers.set('Authorization', `Bearer ${token}`);
+      }
+      return headers;
+    },
   }),
   tagTypes: ['Agent'],
   endpoints: (builder) => ({
@@ -12,12 +19,10 @@ export const agentApi = createApi({
       query: () => 'agents/',
       providesTags: ['Agent'],
     }),
-
     getAgent: builder.query<Agent, string>({
       query: (id) => `/agents/${id}`,
       providesTags: (result, error, id) => [{ type: 'Agent', id }],
     }),
-
     createAgent: builder.mutation<AgentCreateInput, any>({
       query: (data) => ({
         url: 'agents',
@@ -26,7 +31,6 @@ export const agentApi = createApi({
       }),
       invalidatesTags: ['Agent'],
     }),
-
     updateAgent: builder.mutation<Agent, { id: string; data: AgentUpdateInput }>({
       query: ({ id, data }) => ({
         url: `/agents/${id}`,
@@ -35,7 +39,6 @@ export const agentApi = createApi({
       }),
       invalidatesTags: (res, err, { id }) => [{ type: 'Agent', id }],
     }),
-
     deleteAgent: builder.mutation<{ message: string }, string>({
       query: (id) => ({
         url: `/agents/${id}`,

@@ -5,10 +5,17 @@ export const sessionApi = createApi({
   reducerPath: 'sessionApi',
   baseQuery: fetchBaseQuery({
     baseUrl: import.meta.env.VITE_API_BASE_URL,
+    prepareHeaders: (headers) => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        headers.set('Authorization', `Bearer ${token}`);
+      }
+      return headers;
+    },
   }),
   tagTypes: ['session'],
   endpoints: (builder) => ({
-   getSessions: builder.query<any[], SessionQueryParams>({
+    getSessions: builder.query<any[], SessionQueryParams>({
       query: (params) => ({
         url: 'sessions/',
         params: {
@@ -22,9 +29,9 @@ export const sessionApi = createApi({
         },
       }),
     }),
-})
+  }),
 });
 
 export const {
-    useGetSessionsQuery
+  useGetSessionsQuery
 } = sessionApi;

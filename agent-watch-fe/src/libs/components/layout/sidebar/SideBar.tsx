@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useSidebar } from "./UseSidebar";
-
+import logo from "/logo.png";
 const navItems = [
   { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
   { name: "Agents",    icon: Bot,            href: "/agents" },
@@ -51,7 +51,7 @@ export function Sidebar() {
       >
         {/* Mobile header */}
         <div className="flex items-center justify-between px-4 py-5 md:hidden">
-          <span className="text-lg font-bold text-indigo-700">Agent Watch</span>
+          <span className="text-lg font-bold text-indigo-700"><img src={logo} alt="agent-watch-logo"/> Agent Watch</span>
           <button onClick={closeMobile} className="text-gray-500">
             <X size={20} />
           </button>
@@ -64,9 +64,14 @@ export function Sidebar() {
           }`}
         >
           {collapsed ? (
-            <LayoutDashboard className="w-6 h-6 text-indigo-700" />
+            <img src={logo} alt="agent-watch-logo"/>
           ) : (
-            <span className="text-xl font-bold text-indigo-700">Agent Watch</span>
+            <div className="flex items-center gap-2">
+            <img src={logo} alt="agent-watch-logo" className="w-6 h-6"/>
+            <span className="text-xl font-bold text-indigo-700"> 
+            
+            Agent Watch</span>
+            </div>
           )}
        </div>
 
