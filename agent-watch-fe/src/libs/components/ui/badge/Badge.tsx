@@ -1,7 +1,7 @@
 import React from "react"
 import { cn } from "../../../utils/cn"
 
-type BadgeVariant =
+export type BadgeVariant =
   | "success"
   | "warning"
   | "danger"
