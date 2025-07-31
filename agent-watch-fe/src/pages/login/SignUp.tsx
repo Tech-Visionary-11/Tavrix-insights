@@ -5,9 +5,13 @@ import { Button, Card, Input } from '../../libs/components/ui';
 import toast from 'react-hot-toast';
 import { useOrgRegisterMutation, usePersonalRegisterMutation } from './auth.service';
 import { Link, useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
+import {jwtDecode} from "jwt-decode";
 
 type RegistrationType = 'personal' | 'organization';
-
+interface JwtPayload {
+  exp: number;
+}
 interface SignUpValues {
   registrationType: RegistrationType;
   email: string;
@@ -41,36 +45,39 @@ const navigate = useNavigate();
     confirmPassword: '',
     orgName: '',
   };
-
-  const handleSubmit = async (values: SignUpValues) => {
-    
-    try {
-      if (values.registrationType === 'personal') {
-        
-        const response = await personalRegister({
-          email: values.email,
-          password: values.password,
-        }).unwrap();
-        console.log(response);
-        
-        localStorage.setItem('token', response.access_token);
-        toast.success('Personal account created and logged in!');
-      } else {
-        // organization registration expects org name and user
-        const response = await orgRegister({
-          name: values.orgName,
-          email: values.email,
-          password: values.password,
-        }).unwrap();
-        localStorage.setItem('token', response.access_token);
-        toast.success('Organization created and logged in!');
-        navigate('/dashboard', { replace: true });
-      }
-      // Redirect or further actions here
-    } catch (error: any) {
-      toast.error(error?.data?.detail || 'Registration failed');
+const handleSubmit = async (values: SignUpValues) => {
+  try {
+    let response;
+    if (values.registrationType === 'personal') {
+      response = await personalRegister({
+        email: values.email,
+        password: values.password,
+      }).unwrap();
+      toast.success('Personal account created and logged in!');
+    } else {
+      response = await orgRegister({
+        name: values.orgName || '',
+        email: values.email,
+        password: values.password,
+      }).unwrap();
+      toast.success('Organization created and logged in!');
     }
-  };
+
+    const token = response.access_token;
+const decoded: JwtPayload = jwtDecode(token);
+    const expiresAt = new Date(decoded.exp * 1000); // convert to ms
+
+    Cookies.set('auth_token', token, {
+      expires: expiresAt,
+      secure: true,
+      sameSite: 'Strict',
+    });
+
+    navigate('/dashboard', { replace: true });
+  } catch (error: any) {
+    toast.error(error?.data?.detail || 'Registration failed');
+  }
+};
 
   const isLoading = isLoadingPersonal || isLoadingOrg;
 

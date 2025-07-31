@@ -38,7 +38,9 @@ class Agent(Base):
     __tablename__ = "agents"
 
     id = Column(String, primary_key=True, index=True, default=lambda: str(uuid.uuid4()))
-
+        # Ownership
+    owner_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    org_id = Column(Integer, ForeignKey("organizations.id"), nullable=True)
     name = Column(String, nullable=False)
     role = Column(String)
     description = Column(String)
@@ -56,7 +58,8 @@ class Agent(Base):
 
     # Relationships
     steps = relationship("Step", back_populates="agent", cascade="all, delete-orphan")
-
+    owner_user = relationship("User", backref="agents")
+    organization = relationship("Organization", backref="agents")
 
 # ─── STEP MODEL ──────────────────────────────────────── #
 
@@ -67,7 +70,6 @@ class Step(Base):
 
     agent_id = Column(String, ForeignKey("agents.id"), nullable=False)
     code = Column(String, nullable=False, index=True)  # step_code for lookup
-
     name = Column(String, nullable=False)
     type = Column(Enum(StepTypeEnum), nullable=False)
 

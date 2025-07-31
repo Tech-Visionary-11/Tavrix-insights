@@ -17,7 +17,7 @@ router = APIRouter(prefix="/sessions", tags=["Logs"])
 
 
 async def check_session_permission(db: AsyncSession, session_id: str, user: User):
-    session = await session_crud.get_session(db, session_id)
+    session = await session_crud.get_session_by_id(db, session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
 

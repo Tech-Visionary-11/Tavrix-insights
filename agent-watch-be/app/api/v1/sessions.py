@@ -8,10 +8,12 @@ from app.core.dependencies import get_current_user
 from app.models.user import User
 from app.schemas.session import SessionCreate, SessionUpdateClose, SessionOut
 from app.repository import session as session_crud
+from app.repository.agent import ensure_agent_accessible
 
 router = APIRouter(prefix="/sessions", tags=["Sessions"])
 
-# ---------- create ---------------------------------------------------------
+
+# ---------- Create ---------------------------------------------------------
 @router.post(
     "/",
     response_model=SessionOut,
@@ -22,11 +24,10 @@ async def create_session(
     db: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    # Optional: check current_user role or org rights before allowing session creation
-    return await session_crud.create_session(db, payload)
+    return await session_crud.create_session(db, payload, current_user=current_user)
 
 
-# ---------- list -----------------------------------------------------------
+# ---------- List -----------------------------------------------------------
 @router.get("/", response_model=List[SessionOut])
 async def list_sessions(
     agent_id: str = Query(...),
@@ -39,11 +40,12 @@ async def list_sessions(
     db: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    # Optional: Enforce that current_user can access this agent_id (via org membership or admin role)
+    # ✅ Enforce that current_user has access to the agent
+    await ensure_agent_accessible(db, agent_id, current_user)
     return await session_crud.get_sessions_table(db, agent_id, status, tag, since, until, limit, offset)
 
 
-# ---------- get one --------------------------------------------------------
+# ---------- Get One --------------------------------------------------------
 @router.get("/{session_id}", response_model=SessionOut)
 async def get_session_by_id(
     session_id: str = Path(...),
@@ -54,14 +56,13 @@ async def get_session_by_id(
     if not sess:
         raise HTTPException(404, "Session not found")
 
-    # Optional: check authorization - e.g., verify session belongs to user's org or user is admin
-    # if current_user.role != 'admin' and sess.agent_org_id != current_user.org_id:
-    #     raise HTTPException(status_code=403, detail="Not authorized to access this session")
+    # 🔒 Optional: Add access control if required
+    # await ensure_agent_accessible(db, sess.agent_id, current_user)
 
     return sess
 
 
-# ---------- close (PATCH) --------------------------------------------------
+# ---------- Close (PATCH) --------------------------------------------------
 @router.patch("/{session_id}", response_model=SessionOut)
 async def close_session(
     session_id: str,
@@ -69,7 +70,11 @@ async def close_session(
     db: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    # Optional: authorization check like above
+    # 🔒 Optional: Add access control before closing
+    # sess = await session_crud.get_session_by_id(db, session_id)
+    # if not sess:
+    #     raise HTTPException(404, "Session not found")
+    # await ensure_agent_accessible(db, sess.agent_id, current_user)
 
     sess = await session_crud.close_session(db, session_id, payload)
     if not sess:
@@ -77,16 +82,18 @@ async def close_session(
     return sess
 
 
-# ---------- delete ---------------------------------------------------------
+# ---------- Delete ---------------------------------------------------------
 @router.delete("/{session_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_session(
     session_id: str,
     db: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    # Optional: Only admins can delete session, example:
-    # if current_user.role != "admin":
-    #     raise HTTPException(status_code=403, detail="Only admins can delete sessions")
+    # 🔒 Optional: Enforce admin or org check
+    # sess = await session_crud.get_session_by_id(db, session_id)
+    # if not sess:
+    #     raise HTTPException(404, "Session not found")
+    # await ensure_agent_accessible(db, sess.agent_id, current_user)
 
     ok = await session_crud.delete_session(db, session_id)
     if not ok:

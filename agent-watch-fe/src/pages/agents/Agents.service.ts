@@ -1,12 +1,13 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { Agent, AgentCreateInput, AgentUpdateInput } from './AgentsTypes';
+import Cookies from "js-cookie";
 
 export const agentApi = createApi({
   reducerPath: 'agentApi',
   baseQuery: fetchBaseQuery({
     baseUrl: import.meta.env.VITE_API_BASE_URL,
     prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
+const token = Cookies.get('auth_token');
       if (token) {
         headers.set('Authorization', `Bearer ${token}`);
       }

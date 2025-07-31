@@ -5,11 +5,18 @@ import { FormikField } from '../../libs/components/layout/formik-field/FormikFie
 import toast from 'react-hot-toast';
 import { Button, Card, Input } from '../../libs/components/ui';
 import { Link, useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
+import {jwtDecode} from "jwt-decode";
 
 interface SignInValues {
   username: string;
   password: string;
 }
+
+interface JwtPayload {
+  exp: number; // Expiry time in seconds
+}
+
 
 export function SignIn() {
   const [login, { isLoading, error }] = useLoginMutation();
@@ -21,19 +28,30 @@ export function SignIn() {
     password: Yup.string().min(6, 'Too short').required('Required'),
   });
 
-  const handleSubmit = async (values: SignInValues) => {
-    try {
-        
-      const response = await login(values).unwrap();
-      console.log(response);
-      
-      localStorage.setItem('token', response.access_token);
-      toast.success('Login successful!');
-      navigate('/dashboard', { replace: true });
-    } catch (err:any) {
-        toast.error(err?.data?.detail || 'Login failed');
-    }
-  };
+
+const handleSubmit = async (values: SignInValues) => {
+  try {
+    const response = await login(values).unwrap();
+    const token = response.access_token;
+
+    // Decode the token to get the expiration time
+    const decoded: JwtPayload = jwtDecode(token);
+    const expiresAt = new Date(decoded.exp * 1000); // convert to ms
+
+    // Store token in cookie with correct expiry
+    Cookies.set('auth_token', token, {
+      expires: expiresAt,
+      secure: true,
+      sameSite: 'Strict',
+    });
+
+    toast.success('Login successful!');
+    navigate('/dashboard', { replace: true });
+  } catch (err: any) {
+    toast.error(err?.data?.detail || 'Login failed');
+  }
+};
+
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50">
