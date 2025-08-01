@@ -138,7 +138,7 @@ export function AgentForm({
                       {step === stepLabels.length - 1 ? "Submit" : "Next"}
                     </Button>
                   )}
-                  <Button type="submit" disabled={loading}>
+                  <Button type="submit" disabled={loading} >
                     {step === stepLabels.length - 1 ? "Finish" : "Next"}
                   </Button>
                 </div>

@@ -12,10 +12,9 @@ const [createAgent, { isLoading }] = useCreateAgentMutation();
 
 async function handleCreate(values: any) {
   try {
-    console.log(values,"d");
     
-    await createAgent(values).unwrap();
-    navigate("/agents");
+     const agent = await  createAgent(values).unwrap();
+    navigate(`/agents/${agent.id}/connect`);
     toast.success("Agent created successfully!");
   } catch (err) {
     console.error("Failed to create agent:", err);

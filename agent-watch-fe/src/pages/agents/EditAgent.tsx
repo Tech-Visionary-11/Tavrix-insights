@@ -15,7 +15,7 @@ export default function EditAgentPage() {
   const handleUpdate = async (values: AgentUpdateInput) => {
     try {
       await updateAgent({ id, data: values }).unwrap();
-      navigate("/agents");
+      navigate(`/agents/${id}/connect`);
       toast.success("Agent updated successfully!");
     } catch (err) {
       console.error("Update failed:", err);
@@ -25,8 +25,6 @@ export default function EditAgentPage() {
   if (isLoading) {
     return <div className="p-8 text-gray-500">Loading agent...</div>;
   }
-
- 
 
   return (
     <AppLayout>
