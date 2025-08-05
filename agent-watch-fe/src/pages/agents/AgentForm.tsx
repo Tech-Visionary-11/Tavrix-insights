@@ -138,7 +138,15 @@ export function AgentForm({
                       {step === stepLabels.length - 1 ? "Submit" : "Next"}
                     </Button>
                   )}
-                  <Button type="submit" disabled={loading} >
+                  <Button disabled={loading}  type="button"
+                      onClick={() => {
+                        // If it's not the final step, advance form
+                        if (step < stepLabels.length - 1) {
+                          setStep(step + 1);
+                        } else {
+                          onSubmit(values); // Final submit
+                        }
+                      }} >
                     {step === stepLabels.length - 1 ? "Finish" : "Next"}
                   </Button>
                 </div>

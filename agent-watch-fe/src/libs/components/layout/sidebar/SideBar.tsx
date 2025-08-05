@@ -8,6 +8,7 @@ import {
   Menu,
   ChevronLeft,
   ChevronRight,
+  HelpCircle,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useSidebar } from "./UseSidebar";
@@ -17,6 +18,7 @@ const navItems = [
   { name: "Agents",    icon: Bot,            href: "/agents" },
   { name: "Sessions",  icon: Users,          href: "/sessions" },
   { name: "Analytics", icon: BarChart3,      href: "/analytics" },
+  { name: "Help", icon: HelpCircle,      href: "/help-docs/workflow" },
   { name: "Settings",  icon: Settings,       href: "/settings" },
 ];
 

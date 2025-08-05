@@ -15,7 +15,7 @@ export default function EditAgentPage() {
   const handleUpdate = async (values: AgentUpdateInput) => {
     try {
       await updateAgent({ id, data: values }).unwrap();
-      navigate(`/agents/${id}/connect`);
+      navigate(`/agents/view/${id}`);
       toast.success("Agent updated successfully!");
     } catch (err) {
       console.error("Update failed:", err);

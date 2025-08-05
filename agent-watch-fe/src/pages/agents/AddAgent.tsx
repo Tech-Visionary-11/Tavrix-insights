@@ -14,7 +14,8 @@ async function handleCreate(values: any) {
   try {
     
      const agent = await  createAgent(values).unwrap();
-    navigate(`/agents/${agent.id}/connect`);
+      
+    navigate(`/agents/view/${agent.id}`);
     toast.success("Agent created successfully!");
   } catch (err) {
     console.error("Failed to create agent:", err);

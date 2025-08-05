@@ -7,6 +7,7 @@ import EditAgentPage from "./pages/agents/EditAgent";
 import ViewAgentPage from "./pages/agents/view/ViewAgent";
 import { SignIn } from "./pages/login/SignIn";
 import { SignUp } from "./pages/login/SignUp";
+import HelpDocs from "./pages/help-docs/HelpDocs";
 
 export const router = createBrowserRouter([
   {
@@ -57,6 +58,24 @@ export const router = createBrowserRouter([
       </RequireAuth>
     ),
     handle: { name: "View Agent", isParent: false },
+  },
+     {
+    path: "/help-docs/workflow",
+    element: (
+      <RequireAuth>
+        <HelpDocs />
+      </RequireAuth>
+    ),
+    handle: { name: "Help Doc", isParent: true },
+  },
+   {
+    path: "/help-docs/workflow/:id",
+    element: (
+      <RequireAuth>
+        <HelpDocs />
+      </RequireAuth>
+    ),
+    handle: { name: "Help Doc", isParent: false },
   },
   {
     path: "/signin",
