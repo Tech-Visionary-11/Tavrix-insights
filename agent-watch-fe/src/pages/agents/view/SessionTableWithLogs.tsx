@@ -8,9 +8,7 @@ import {
   Button,
   type BadgeVariant,
 } from "../../../libs/components/ui";
-import { useGetSessionsQuery } from "../sessions.service";
 import { SessionLogsPanel } from "./SessionLogPanel";
-import { useParams } from "react-router-dom";
 import { Copy } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 
@@ -148,22 +146,16 @@ const sessionColumns = (
     ),
   },
 ];
-
-export function SessionTableWithLogs() {
-  const { id } = useParams();
+interface Props {
+  sessions: Session[];
+  isLoading: boolean;
+}
+export function SessionTableWithLogs({ sessions, isLoading }: Props) {
   const [filters, setFilters] = useState({
     status: "",
     tag: "",
     page: 1,
     limit: 10,
-  });
-
-  const { data: sessions = [], isLoading } = useGetSessionsQuery({
-    agent_id: id,
-    status: filters.status,
-    tag: filters.tag,
-    offset: (filters.page - 1) * filters.limit, // ✅ correct offset
-    limit: filters.limit,
   });
 
   const [expanded, setExpanded] = useState<string | null>(null);

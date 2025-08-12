@@ -12,6 +12,7 @@ import { useState } from "react";
 import { skipToken } from "@reduxjs/toolkit/query";
 import OverviewCard from "./OverviewCard";
 import ChatBotInsights from "./ChatBotInsights";
+import { useGetSessionsQuery } from "../sessions.service";
 
 export default function ViewAgentPage() {
   const { id } = useParams();
@@ -20,6 +21,14 @@ export default function ViewAgentPage() {
   const { data: agent, isLoading } = useGetAgentQuery(id ?? skipToken);
   const { data: workflowStepData } = useGetStepperByIdQuery(id ?? skipToken);
  
+  const { data: sessions = [], isLoading: sessionsLoading } = useGetSessionsQuery({
+    agent_id: id,
+    status: "",
+    tag: "",
+    offset: 0,
+    limit: 50, // arbitrary default, change as needed
+  });
+    const isFirstConnect = sessions?.length == 0;
 
   const isWorkflow = agent?.type === "workflow";
 
@@ -36,9 +45,10 @@ export default function ViewAgentPage() {
         </button>
       )}
 
-      { agent&&<ConnectAgent
+      { <ConnectAgent
         agent={agent}
         isOpen={isModalOpen}
+        isFirstConnect={isFirstConnect}
         onClose={() => setIsModalOpen(false)}
       />}
 
@@ -52,7 +62,8 @@ export default function ViewAgentPage() {
       )}
 
       {/* ✅ Logs Table (Always Visible) */}
-      <SessionTableWithLogs />
+      <SessionTableWithLogs    sessions={sessions}
+        isLoading={sessionsLoading} />
 
       <UsageMetricsSection />
       <AlertingConfigCard />
