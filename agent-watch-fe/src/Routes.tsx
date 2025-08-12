@@ -62,9 +62,7 @@ export const router = createBrowserRouter([
      {
     path: "/help-docs/workflow",
     element: (
-      <RequireAuth>
         <HelpDocs />
-      </RequireAuth>
     ),
     handle: { name: "Help Doc", isParent: true },
   },

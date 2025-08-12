@@ -4,6 +4,7 @@ import { cn } from "@utils/cn"
 type Tab = {
   label: string
   value: string
+  disabled?: boolean
 }
 
 interface TabsProps {
@@ -19,6 +20,7 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, value, onChange, className }) 
       {tabs.map((tab) => (
         <button
           key={tab.value}
+          disabled={tab.disabled}
           onClick={() => onChange(tab.value)}
           className={cn(
             "px-4 py-2 rounded-lg text-sm font-medium transition",
