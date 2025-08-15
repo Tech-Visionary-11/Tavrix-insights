@@ -1,4 +1,3 @@
-# app/core/database.py
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 from pydantic_settings import BaseSettings
@@ -12,7 +11,9 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-engine = create_async_engine(settings.database_url, echo=False,    connect_args={"ssl": "require"},  # This is the key part
+engine = create_async_engine(settings.database_url, echo=False, 
+                              
+                            #    connect_args={"ssl": "require",},  # This is the key part
 )
 
 AsyncSessionLocal = sessionmaker(

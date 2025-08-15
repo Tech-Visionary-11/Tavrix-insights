@@ -21,6 +21,7 @@ const navItems = [
   { name: "Help", icon: HelpCircle,      href: "/help-docs/workflow" },
   { name: "Settings",  icon: Settings,       href: "/settings" },
 ];
+const allowedMenuNames = ["Agents"];
 
 export function Sidebar() {
   const { isOpen, collapsed, toggleMobile, toggleCollapse, closeMobile } = useSidebar();
@@ -78,34 +79,39 @@ export function Sidebar() {
        </div>
 
         {/* Navigation */}
-        <nav className="flex-1 space-y-1 px-2">
-          {navItems.map(({ name, icon: Icon, href }) => {
-            const active = pathname === href;
-            return (
-              <Link
-                key={href}
-                to={href}
-                onClick={closeMobile}
-                className={`
-                  relative flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition
-                  ${active ? "bg-indigo-50 text-indigo-700 font-medium" : "text-gray-700 hover:bg-gray-50"}
-                  ${collapsed ? "justify-center px-0" : ""}
-                `}
-              >
-                {active && (
-                  <span className="absolute left-0 top-0 h-full w-1 rounded-r bg-indigo-600" />
-                )}
-                <Icon
-                  size={18}
-                  className={`${active ? "text-indigo-600" : "text-gray-500"} ${
-                    collapsed ? "" : "group-hover:text-indigo-600"
-                  }`}
-                />
-                {!collapsed && name}
-              </Link>
-            );
-          })}
-        </nav>
+      
+      
+<nav className="flex-1 space-y-1 px-2">
+  {navItems.map(({ name, icon: Icon, href }) => {
+    const active = pathname === href;
+    const isDisabled = !allowedMenuNames.includes(name);
+
+    return (
+      <Link
+        key={href}
+        to={isDisabled ? "#" : href} // prevent navigation if disabled
+        onClick={isDisabled ? (e) => e.preventDefault() : closeMobile}
+        className={`
+          relative flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition
+          ${active ? "bg-indigo-50 text-indigo-700 font-medium" : "text-gray-700 hover:bg-gray-50"}
+          ${collapsed ? "justify-center px-0" : ""}
+          ${isDisabled ? "opacity-50 pointer-events-none cursor-not-allowed hover:bg-transparent" : ""}
+        `}
+      >
+        {active && !isDisabled && (
+          <span className="absolute left-0 top-0 h-full w-1 rounded-r bg-indigo-600" />
+        )}
+        <Icon
+          size={18}
+          className={`${active ? "text-indigo-600" : "text-gray-500"} ${
+            collapsed ? "" : "group-hover:text-indigo-600"
+          }`}
+        />
+        {!collapsed && name}
+      </Link>
+    );
+  })}
+</nav>
  {/* Collapse Button - neatly at bottom */}
 
 <div className="hidden md:flex justify-start py-4 ms-5  mt-auto">

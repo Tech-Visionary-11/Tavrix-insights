@@ -1,8 +1,8 @@
 from typing import Optional, List, Dict
 from datetime import datetime
-from pydantic import BaseModel, Field, model_validator, field_validator
+from pydantic import BaseModel, model_validator, field_validator
 from app.models.agent import AgentTypeEnum, AgentStatusEnum, StepTypeEnum, ProviderEnum
-
+from app.schemas.alert import AlertConfigCreate
 # ─── StepBase ─── #
 class StepBase(BaseModel):
     code: str
@@ -27,6 +27,7 @@ class AgentCreate(BaseModel):
     status: AgentStatusEnum = AgentStatusEnum.active
     modal_config: Optional[dict] = None
     steps: Optional[List[StepBase]] = None
+    alert_config: Optional[AlertConfigCreate]
 
     model_config = {
         "use_enum_values": True
@@ -78,6 +79,7 @@ class AgentUpdate(BaseModel):
     status: Optional[AgentStatusEnum] = None
     modal_config: Optional[dict] = None
     steps: Optional[List[StepUpdate]] = None
+    alert_config: Optional[AlertConfigCreate]
 
     model_config = {
         "use_enum_values": True

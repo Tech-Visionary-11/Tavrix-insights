@@ -73,7 +73,7 @@ const decoded: JwtPayload = jwtDecode(token);
       sameSite: 'Strict',
     });
 
-    navigate('/dashboard', { replace: true });
+    navigate('/', { replace: true });
   } catch (error: any) {
     toast.error(error?.data?.detail || 'Registration failed');
   }

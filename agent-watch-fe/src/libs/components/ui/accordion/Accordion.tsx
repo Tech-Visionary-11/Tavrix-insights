@@ -12,7 +12,7 @@ export const AccordionItem: React.FC<AccordionItemProps> = ({ title, children })
 <div className="rounded-md mb-3 bg-white border-l-4 border-blue-500 shadow-sm">
       <button
         type="button"
-        className="w-full flex justify-between items-center p-4 text-left font-medium text-gray-800 hover:bg-gray-50"
+        className="cursor-pointer w-full flex justify-between items-center p-4 text-left font-medium text-gray-800 hover:bg-gray-50"
         onClick={() => setIsOpen(!isOpen)}
       >
         {title}

@@ -60,8 +60,7 @@ class Agent(Base):
     steps = relationship("Step", back_populates="agent", cascade="all, delete-orphan")
     owner_user = relationship("User", backref="agents")
     organization = relationship("Organization", backref="agents")
-
-# ─── STEP MODEL ──────────────────────────────────────── #
+    alert_config = relationship("AlertConfig", back_populates="agent", uselist=False, cascade="all, delete-orphan")# ─── STEP MODEL ──────────────────────────────────────── #
 
 class Step(Base):
     __tablename__ = "steps"

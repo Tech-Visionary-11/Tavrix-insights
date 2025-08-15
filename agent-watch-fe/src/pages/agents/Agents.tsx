@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type JSX } from "react";
 import { useNavigate } from "react-router-dom";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
@@ -34,7 +34,7 @@ export default function Agents() {
   const [statusFilter, setStatusFilter] = useState("all");
   const navigate = useNavigate();
 
-  const { data: agents = [], isLoading, isError } = useGetAgentsQuery({});
+  const { data: agents = [], isLoading, isError } = useGetAgentsQuery();
   const { data: highlights } = useGetAgentHighlightsQuery();
   const filtered =
     statusFilter === "all"
@@ -108,18 +108,20 @@ export default function Agents() {
           <Button
             size="sm"
             variant="secondary"
+            className="cursor-pointer"
             onClick={() => navigate(`/agents/view/${row.original.id}`)}
           >
             <Eye size={14} className="mr-1" />
-            View
+            
           </Button>
           <Button
             size="sm"
             variant="primary"
+            className="cursor-pointer"
             onClick={() => navigate(`/agents/edit/${row.original.id}`)}
           >
             <Pencil size={14} className="mr-1" />
-            Edit
+          
           </Button>
         </div>
       ),

@@ -6,6 +6,7 @@ from app.core import security
 from app.core.database import get_session
 from app.models.user import User, Organization
 from app.schemas.user import UserCreate, OrganizationCreate, Token
+from app.core.dependencies import get_current_user
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -71,7 +72,6 @@ async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(get_session),
 ):
-    print("login")
     result = await db.execute(select(User).filter(User.email == form_data.username))
     user = result.scalars().first()
     print("user", user)
@@ -85,3 +85,23 @@ async def login(
     )
     print("access")
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.get("/me")
+async def get_me(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_session)
+):
+    org_name = None
+    if current_user.org_id:
+        result = await db.execute(
+            select(Organization.name).filter(Organization.id == current_user.org_id)
+        )
+        org_name = result.scalar()
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+        "role": current_user.role.value if current_user.role else None,
+        "account_type": "personal" if current_user.personal else "org",
+        "organization_name": org_name
+    }

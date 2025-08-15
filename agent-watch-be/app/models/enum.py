@@ -6,3 +6,8 @@ class LogTypeEnum(str, Enum):
     completion = "completion"
     error = "error"
     info = "info"
+
+class AlertChannelEnum(str, Enum):
+    email = "email"
+    slack = "slack"
+    webhook = "webhook"

@@ -3,7 +3,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import uuid
 from .base import Base
-from app.schemas.log import LogTypeEnum
+from .enum import LogTypeEnum
 
 class SessionLog(Base):
     __tablename__ = "session_logs"

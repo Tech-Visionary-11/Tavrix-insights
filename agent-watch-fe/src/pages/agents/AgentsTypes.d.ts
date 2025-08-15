@@ -44,8 +44,7 @@ export interface Agent {
   status: AgentStatus;
   modal_config: ModalConfig;
   steps?: Step[];
-  alert_email?: string;
-  threshold?: number;
+    alert_config?: AlertConfig; 
   created_at?: string;
   updated_at?: string;
 }
@@ -70,3 +69,14 @@ export type SessionQueryParams = {
   offset?: number;
 };
 
+export type AlertChannel = "email" | "slack" | "webhook";
+
+export interface AlertConfig {
+  enabled: boolean;
+  channel?: AlertChannel;
+  alert_email?: string;
+  webhook_url?: string;
+  failure_threshold?: number;
+  cost_threshold?: number;
+  notes?: string;
+}

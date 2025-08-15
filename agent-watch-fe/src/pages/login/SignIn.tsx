@@ -46,7 +46,7 @@ const handleSubmit = async (values: SignInValues) => {
     });
 
     toast.success('Login successful!');
-    navigate('/dashboard', { replace: true });
+    navigate('/', { replace: true });
   } catch (err: any) {
     toast.error(err?.data?.detail || 'Login failed');
   }

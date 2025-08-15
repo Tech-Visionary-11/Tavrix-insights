@@ -11,7 +11,7 @@ const ConnectAgent = ({
   onClose,
   isFirstConnect,
 }: {
-  agent: Agent | null;
+  agent?: Agent;
   isOpen: boolean;
   onClose: () => void;
   isFirstConnect: boolean;
@@ -22,7 +22,7 @@ const ConnectAgent = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Connect Your Agent 🎉"
+      title="Connect Your Agent"
       className="max-w-2xl"
     >
       <div className="pb-4">

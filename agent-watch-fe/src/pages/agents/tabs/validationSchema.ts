@@ -38,5 +38,25 @@ export const modelConfigSchema = Yup.object({
 });
 
 
-export const alertingSchema = Yup.object({});
-
+export const alertingSchema = Yup.object({
+  alert_config: Yup.object({
+    enabled: Yup.boolean(),
+    channel: Yup.string().oneOf(["email", "slack", "webhook"]).when("enabled", {
+      is: true,
+      then: Yup.string().required("Channel is required when alerts are enabled"),
+    }),
+    alert_email: Yup.string().email().when(["channel", "enabled"], {
+      is: (channel, enabled) => enabled && channel === "email",
+      then: Yup.string().required("Alert Email is required for email channel"),
+      otherwise: Yup.string().notRequired(),
+    }),
+    webhook_url: Yup.string().url().when(["channel", "enabled"], {
+      is: (channel, enabled) => enabled && (channel === "slack" || channel === "webhook"),
+      then: Yup.string().required("Webhook URL is required for Slack or Webhook channel"),
+      otherwise: Yup.string().notRequired(),
+    }),
+    failure_threshold: Yup.number().integer().min(1).nullable(),
+    cost_threshold: Yup.number().min(0).nullable(),
+    notes: Yup.string().nullable(),
+  }),
+});

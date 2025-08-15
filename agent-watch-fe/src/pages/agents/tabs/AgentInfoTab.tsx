@@ -48,9 +48,9 @@ export function AgentInfoTab() {
                 name="type"
                 component={Select}
                 options={[
-                  { label: "Assistant", value: "assistant" },
+                  { label: "Assistant", value: "assistant" ,disabled: true }, 
                   { label: "Workflow", value: "workflow" },
-                  { label: "Tool", value: "tool" },
+                  { label: "Tool", value: "tool",disabled: true }, 
                 ]}
               />
             </div>

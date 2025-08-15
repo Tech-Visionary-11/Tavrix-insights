@@ -8,7 +8,8 @@ from app.models.agent import Agent, Step
 from sqlalchemy.orm import selectinload
 from app.models.user import User
 from fastapi import HTTPException
-# ─── Create Agent ─── #
+from app.models.alert import AlertConfig
+
 async def create_agent(db: AsyncSession, agent: AgentCreate, current_user: User):
     new_agent = Agent(
         id=str(uuid.uuid4()),
@@ -25,9 +26,9 @@ async def create_agent(db: AsyncSession, agent: AgentCreate, current_user: User)
         owner_user_id=current_user.id if current_user.personal else None,
         org_id=current_user.org_id if not current_user.personal else None
     )
-
     db.add(new_agent)
 
+    # Add steps if any
     if agent.steps:
         for step_data in agent.steps:
             new_step = Step(
@@ -43,16 +44,32 @@ async def create_agent(db: AsyncSession, agent: AgentCreate, current_user: User)
             )
             db.add(new_step)
 
+    # Add alert config if provided
+    if agent.alert_config:
+        alert_data = agent.alert_config.model_dump()
+        new_alert_config = AlertConfig(
+            id=str(uuid.uuid4()),
+            agent=new_agent,
+            **alert_data
+        )
+        db.add(new_alert_config)
+
     await db.commit()
 
     result = await db.execute(
-        select(Agent).options(selectinload(Agent.steps)).where(Agent.id == new_agent.id)
+        select(Agent)
+        .options(selectinload(Agent.steps), selectinload(Agent.alert_config))
+        .where(Agent.id == new_agent.id)
     )
     return result.scalar_one()
 
+
 # ─── Get All ─── #
 async def get_agents(db: AsyncSession, current_user: User):
-    stmt = select(Agent).options(selectinload(Agent.steps))
+    stmt = select(Agent).options(
+        selectinload(Agent.steps),
+        selectinload(Agent.alert_config)
+    )
     
     if current_user.personal:
         stmt = stmt.where(Agent.owner_user_id == current_user.id)
@@ -64,7 +81,10 @@ async def get_agents(db: AsyncSession, current_user: User):
 
 
 async def get_agent(db: AsyncSession, agent_id: str, current_user: User):
-    stmt = select(Agent).options(selectinload(Agent.steps)).where(Agent.id == agent_id)
+    stmt = select(Agent).options(
+        selectinload(Agent.steps),
+        selectinload(Agent.alert_config)
+    ).where(Agent.id == agent_id)
 
     if current_user.personal:
         stmt = stmt.where(Agent.owner_user_id == current_user.id)
@@ -74,14 +94,18 @@ async def get_agent(db: AsyncSession, agent_id: str, current_user: User):
     result = await db.execute(stmt)
     return result.scalar_one_or_none()
 
+
 async def update_agent(db: AsyncSession, agent_id: str, data: AgentUpdate, current_user: User):
+    print(f"Updating agent {agent_id} with data: {data}")
     agent = await get_agent(db, agent_id, current_user)
     if not agent:
         return None
 
-    for key, value in data.dict(exclude_unset=True, exclude={"steps"}).items():
+    # Update top-level agent fields except steps and alert_config
+    for key, value in data.model_dump(exclude_unset=True, exclude={"steps", "alert_config"}).items():
         setattr(agent, key, value)
 
+    # Handle steps update/add/delete
     if data.steps is not None:
         current_steps = {s.id: s for s in agent.steps}
         steps_to_keep = set()
@@ -89,7 +113,7 @@ async def update_agent(db: AsyncSession, agent_id: str, data: AgentUpdate, curre
         for step_update in data.steps:
             if step_update.id and step_update.id in current_steps:
                 step = current_steps[step_update.id]
-                for key, value in step_update.dict(exclude_unset=True).items():
+                for key, value in step_update.model_dump(exclude_unset=True).items():
                     setattr(step, key, value)
                 steps_to_keep.add(step_update.id)
             else:
@@ -106,17 +130,38 @@ async def update_agent(db: AsyncSession, agent_id: str, data: AgentUpdate, curre
                 )
                 db.add(new_step)
 
+        # Delete steps that were removed
         for step_id, step in current_steps.items():
             if step_id not in steps_to_keep:
                 await db.delete(step)
+
+    # Handle alert_config update or create
+    if data.alert_config is not None:
+        alert_data = data.alert_config.model_dump(exclude_unset=True)
+        # Fetch existing alert config for this agent, if any
+        existing_alert = agent.alert_config
+
+        if existing_alert:
+            # Update existing alert config fields
+            for key, value in alert_data.items():
+                setattr(existing_alert, key, value)
+        else:
+            # Create new alert config
+            new_alert = AlertConfig(
+                id=str(uuid.uuid4()),
+                agent_id=agent.id,
+                **alert_data
+            )
+            db.add(new_alert)
 
     agent.updated_at = datetime.datetime.utcnow()
     await db.commit()
 
     result = await db.execute(
-        select(Agent).options(selectinload(Agent.steps)).where(Agent.id == agent_id)
+        select(Agent).options(selectinload(Agent.steps), selectinload(Agent.alert_config)).where(Agent.id == agent_id)
     )
     return result.scalar_one()
+
 
 
 

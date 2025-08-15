@@ -16,7 +16,7 @@ export const Button: React.FC<ButtonProps> = ({
   ...props
 }) => {
   const baseClasses =
-    "inline-flex items-center justify-center rounded-lg font-medium transition disabled:opacity-60 disabled:cursor-not-allowed";
+    "inline-flex cursor-pointer items-center justify-center rounded-lg font-medium transition disabled:opacity-60 disabled:cursor-not-allowed";
 
   const sizeClasses = {
     sm: "px-3 py-1 text-xs",

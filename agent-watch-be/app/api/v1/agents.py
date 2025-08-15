@@ -16,7 +16,6 @@ async def create(
     db: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user)  # Require authenticated user
 ):
-    # Optionally: check user role/org here if needed
     return await agent_crud.create_agent(db, agent, current_user=current_user)
 
 @router.get("", response_model=list[AgentOut])
@@ -44,7 +43,6 @@ async def update(
     db: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user)
 ):
-    # Optional: enforce org or role check here before update
     agent = await agent_crud.update_agent(db, agent_id, update, current_user)
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")

@@ -12,7 +12,7 @@ import HelpDocs from "./pages/help-docs/HelpDocs";
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <Navigate to="/dashboard" replace />,
+    element: <Navigate to="/agents" replace />,
   },
   {
     path: "/dashboard",
@@ -87,6 +87,6 @@ export const router = createBrowserRouter([
   },
   {
     path: "*",
-    element: <Navigate to="/dashboard" replace />,
+    element: <Navigate to="/" replace />,
   },
 ]);

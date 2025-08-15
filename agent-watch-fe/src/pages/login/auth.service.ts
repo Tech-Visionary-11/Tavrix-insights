@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-
+import Cookies from "js-cookie";
 interface PersonalRegisterInput {
   email: string;
   password: string;
@@ -14,6 +14,13 @@ interface OrgRegisterInput {
 interface TokenResponse {
   access_token: string;
   token_type: string;
+}
+interface User { 
+  email: string,
+  role: string       
+  account_type: "org"| "personal"
+  id: string;
+  organization_name?: string
 }
 
 export const authApi = createApi({
@@ -47,6 +54,18 @@ export const authApi = createApi({
         }),
       }),
     }),
+    getMe: builder.query<User, void>({
+      query: () => {
+        const token = Cookies.get("auth_token");
+        return {
+          url: "/auth/me",
+          method: "GET",
+          headers: token
+            ? { Authorization: `Bearer ${token}` }
+            : undefined,
+        };
+      },
+    }),
   }),
 });
 
@@ -54,4 +73,6 @@ export const {
   usePersonalRegisterMutation,
   useOrgRegisterMutation,
   useLoginMutation,
+useGetMeQuery
 } = authApi;
+

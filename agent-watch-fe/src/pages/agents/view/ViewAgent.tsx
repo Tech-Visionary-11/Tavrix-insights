@@ -2,8 +2,6 @@ import { useParams } from "react-router-dom";
 import {  Plug } from "lucide-react";
 import AppLayout from "../../../libs/components/layout/app-layout/AppLayout";
 import { useGetAgentQuery } from "../Agents.service";
-import { WorkflowStepVisualizer } from "./WorkflowStepVisualizer";
-import { useGetStepperByIdQuery } from "./Analytics.service";
 import { UsageMetricsSection } from "./UsageMetricsSection";
 import { SessionTableWithLogs } from "./SessionTableWithLogs";
 import { AlertingConfigCard } from "./Alert";
@@ -13,13 +11,13 @@ import { skipToken } from "@reduxjs/toolkit/query";
 import OverviewCard from "./OverviewCard";
 import ChatBotInsights from "./ChatBotInsights";
 import { useGetSessionsQuery } from "../sessions.service";
+import { WorkflowStepSummary } from "./WorkflowStepSummary";
 
 export default function ViewAgentPage() {
   const { id } = useParams();
   const [isModalOpen, setIsModalOpen] = useState(true);
 
   const { data: agent, isLoading } = useGetAgentQuery(id ?? skipToken);
-  const { data: workflowStepData } = useGetStepperByIdQuery(id ?? skipToken);
  
   const { data: sessions = [], isLoading: sessionsLoading } = useGetSessionsQuery({
     agent_id: id,
@@ -58,7 +56,7 @@ export default function ViewAgentPage() {
       {!isWorkflow ? (
         <ChatBotInsights />
       ) : (
-        <WorkflowStepVisualizer stepsData={workflowStepData || []} />
+        <WorkflowStepSummary steps={agent?.steps || []} />
       )}
 
       {/* ✅ Logs Table (Always Visible) */}
@@ -66,7 +64,7 @@ export default function ViewAgentPage() {
         isLoading={sessionsLoading} />
 
       <UsageMetricsSection />
-      <AlertingConfigCard />
+      <AlertingConfigCard alertConfig={agent?.alert_config} />
     </AppLayout>
   );
 }

@@ -21,11 +21,7 @@ const stepsWithoutWorkflow = ["Agent Info", "Model Setup", "Alert Rules"];
 
 // ✅ Validation schema for each step
 const validationSchemas = {
-  withWorkflow: [
-    agentInfoSchema,
-    modelConfigSchema,
-    alertingSchema,
-  ],
+  withWorkflow: [agentInfoSchema, modelConfigSchema, alertingSchema],
   withoutWorkflow: [agentInfoSchema, modelConfigSchema, alertingSchema],
 };
 
@@ -56,7 +52,7 @@ export function AgentForm({
       initialValues={{
         name: initialData?.name || "",
         description: initialData?.description || "",
-        type: initialData?.type || "assistant",
+        type: initialData?.type || "workflow",
         status: initialData?.status || "active",
         tags: initialData?.tags || "",
         avatar_url: initialData?.avatar_url || "",
@@ -71,8 +67,15 @@ export function AgentForm({
           },
           track_tokens: initialData?.modal_config?.track_tokens || false,
         },
-        alert_email: initialData?.alert_email || "",
-        threshold: initialData?.threshold || 0,
+        alert_config: {
+          enabled: initialData?.alert_config?.enabled || false,
+          channel: initialData?.alert_config?.channel || "email",
+          alert_email: initialData?.alert_config?.alert_email || "",
+          webhook_url: initialData?.alert_config?.webhook_url || "",
+          failure_threshold: initialData?.alert_config?.failure_threshold || "",
+          cost_threshold: initialData?.alert_config?.cost_threshold || "",
+          notes: initialData?.alert_config?.notes || "",
+        },
         steps: initialData?.steps || [],
       }}
       validationSchema={(values: any) => {
@@ -138,15 +141,18 @@ export function AgentForm({
                       {step === stepLabels.length - 1 ? "Submit" : "Next"}
                     </Button>
                   )}
-                  <Button disabled={loading}  type="button"
-                      onClick={() => {
-                        // If it's not the final step, advance form
-                        if (step < stepLabels.length - 1) {
-                          setStep(step + 1);
-                        } else {
-                          onSubmit(values); // Final submit
-                        }
-                      }} >
+                  <Button
+                    disabled={loading}
+                    type="button"
+                    onClick={() => {
+                      // If it's not the final step, advance form
+                      if (step < stepLabels.length - 1) {
+                        setStep(step + 1);
+                      } else {
+                        onSubmit(values); // Final submit
+                      }
+                    }}
+                  >
                     {step === stepLabels.length - 1 ? "Finish" : "Next"}
                   </Button>
                 </div>
