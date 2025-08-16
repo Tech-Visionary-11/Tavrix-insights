@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Modal, Tabs } from "../../libs/components/ui";
 import type { Agent } from "../agents/AgentsTypes";
 import { CodeBlock } from "../../libs/components/ui/copy-block/CodeBlock";
-import { NavLink } from "react-router-dom";
 import agentconnectionflow from "../../assets/agent-connection-flow.png";
 
 const ConnectAgent = ({
@@ -31,12 +30,14 @@ const ConnectAgent = ({
             <div className="bg-indigo-50 border border-indigo-200 rounded-md p-3 mb-4 text-sm text-indigo-800">
               🔰 Looks like this agent has no sessions yet. Follow the steps
               below or{" "}
-              <NavLink
-                to={`/help-docs/workflow/${agent?.id}`}
+              <a
+                href={`${import.meta.env.VITE_LANDING_PAGE_URL || ""}/help-docs`}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="ml-1 text-indigo-600 underline"
               >
                 view the full connection guide
-              </NavLink>
+              </a>
               .
             </div>
 
@@ -73,7 +74,9 @@ const ConnectAgent = ({
           <>
             {/* Step 1 */}
             <div className="font-semibold mb-1">Step 1: Create a Session</div>
-            <CodeBlock>{`curl -X POST 'https://yourdomain.com/api/sessions/'
+            <CodeBlock>{`curl -X POST '${
+              import.meta.env.VITE_API_BASE_URL
+            }/api/sessions/'
 -H 'Content-Type: application/json'
 -d '{
   "agent_id": "${agent?.id ?? "YOUR_AGENT_ID"}",
@@ -85,7 +88,7 @@ const ConnectAgent = ({
 
             {/* Step 2 */}
             <div className="font-semibold mt-3 mb-1">Step 2: Send Logs</div>
-            <CodeBlock>{`curl -X POST 'https://yourdomain.com/api/sessions/<SESSION_ID>/logs'
+            <CodeBlock>{`curl -X POST '${import.meta.env.VITE_API_BASE_URL}/api/sessions/<SESSION_ID>/logs'
 -H 'Content-Type: application/json'
 -d '{
   "log_type": "info",
@@ -94,7 +97,7 @@ const ConnectAgent = ({
 
             {/* Step 3 */}
             <div className="font-semibold mt-3 mb-1">Step 3: Close Session</div>
-            <CodeBlock>{`curl -X PATCH 'https://yourdomain.com/api/sessions/<SESSION_ID>'
+            <CodeBlock>{`curl -X PATCH '${import.meta.env.VITE_API_BASE_URL}/api/sessions/<SESSION_ID>'
 -H 'Content-Type: application/json'
 -d '{
   "status": "completed",

@@ -13,15 +13,19 @@ import {
 import { Link, useLocation } from "react-router-dom";
 import { useSidebar } from "./UseSidebar";
 import logo from "/logo.png";
+
+const landingHelpUrl = import.meta.env.VITE_LANDING_PAGE_URL ? `${import.meta.env.VITE_LANDING_PAGE_URL}/help-docs` : "/help-docs";
+
 const navItems = [
   { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
-  { name: "Agents",    icon: Bot,            href: "/agents" },
-  { name: "Sessions",  icon: Users,          href: "/sessions" },
-  { name: "Analytics", icon: BarChart3,      href: "/analytics" },
-  { name: "Help", icon: HelpCircle,      href: "/help-docs/workflow" },
-  { name: "Settings",  icon: Settings,       href: "/settings" },
+  { name: "Agents",    icon: Bot,             href: "/agents" },
+  { name: "Sessions",  icon: Users,           href: "/sessions" },
+  { name: "Analytics", icon: BarChart3,       href: "/analytics" },
+  // Change Help to external landing URL
+  { name: "Help", icon: HelpCircle, href: landingHelpUrl, external: true },
+  { name: "Settings",  icon: Settings,         href: "/settings" },
 ];
-const allowedMenuNames = ["Agents","Help"];
+const allowedMenuNames = ["Agents", "Help"];
 
 export function Sidebar() {
   const { isOpen, collapsed, toggleMobile, toggleCollapse, closeMobile } = useSidebar();
@@ -54,7 +58,9 @@ export function Sidebar() {
       >
         {/* Mobile header */}
         <div className="flex items-center justify-between px-4 py-5 md:hidden">
-          <span className="text-lg font-bold text-indigo-700"><img src={logo} alt="agent-watch-logo"/> Agent Watch</span>
+          <span className="text-lg font-bold text-indigo-700">
+            <img src={logo} alt="agent-watch-logo" /> Agent Watch
+          </span>
           <button onClick={closeMobile} className="text-gray-500">
             <X size={20} />
           </button>
@@ -67,62 +73,86 @@ export function Sidebar() {
           }`}
         >
           {collapsed ? (
-            <img src={logo} alt="agent-watch-logo"/>
+            <img src={logo} alt="agent-watch-logo" />
           ) : (
             <div className="flex items-center gap-2">
-            <img src={logo} alt="agent-watch-logo" className="w-6 h-6"/>
-            <span className="text-xl font-bold text-indigo-700"> 
-            
-            Agent Watch</span>
+              <img src={logo} alt="agent-watch-logo" className="w-6 h-6" />
+              <span className="text-xl font-bold text-indigo-700">Agent Watch</span>
             </div>
           )}
-       </div>
+        </div>
 
         {/* Navigation */}
-      
-      
-<nav className="flex-1 space-y-1 px-2">
-  {navItems.map(({ name, icon: Icon, href }) => {
-    const active = pathname === href;
-    const isDisabled = !allowedMenuNames.includes(name);
+        <nav className="flex-1 space-y-1 px-2">
+          {navItems.map(({ name, icon: Icon, href, external }) => {
+            const active = pathname === href;
+            const isDisabled = !allowedMenuNames.includes(name);
 
-    return (
-      <Link
-        key={href}
-        to={isDisabled ? "#" : href} // prevent navigation if disabled
-        onClick={isDisabled ? (e) => e.preventDefault() : closeMobile}
-        className={`
-          relative flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition
-          ${active ? "bg-indigo-50 text-indigo-700 font-medium" : "text-gray-700 hover:bg-gray-50"}
-          ${collapsed ? "justify-center px-0" : ""}
-          ${isDisabled ? "opacity-50 pointer-events-none cursor-not-allowed hover:bg-transparent" : ""}
-        `}
-      >
-        {active && !isDisabled && (
-          <span className="absolute left-0 top-0 h-full w-1 rounded-r bg-indigo-600" />
-        )}
-        <Icon
-          size={18}
-          className={`${active ? "text-indigo-600" : "text-gray-500"} ${
-            collapsed ? "" : "group-hover:text-indigo-600"
-          }`}
-        />
-        {!collapsed && name}
-      </Link>
-    );
-  })}
-</nav>
- {/* Collapse Button - neatly at bottom */}
+            if (external) {
+              // For external links like Help, render <a> with target _blank
+              return (
+                <a
+                  key={href}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`
+                    relative flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition
+                    text-gray-700 hover:bg-gray-50
+                    ${collapsed ? "justify-center px-0" : ""}
+                    ${isDisabled ? "opacity-50 pointer-events-none cursor-not-allowed hover:bg-transparent" : ""}
+                  `}
+                  onClick={isDisabled ? (e) => e.preventDefault() : closeMobile}
+                >
+                  <Icon
+                    size={18}
+                    className={`text-gray-500 ${
+                      collapsed ? "" : "group-hover:text-indigo-600"
+                    }`}
+                  />
+                  {!collapsed && name}
+                </a>
+              );
+            } else {
+              // Internal navigation using react-router-dom Link
+              return (
+                <Link
+                  key={href}
+                  to={isDisabled ? "#" : href} // prevent navigation if disabled
+                  onClick={isDisabled ? (e) => e.preventDefault() : closeMobile}
+                  className={`
+                    relative flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition
+                    ${active ? "bg-indigo-50 text-indigo-700 font-medium" : "text-gray-700 hover:bg-gray-50"}
+                    ${collapsed ? "justify-center px-0" : ""}
+                    ${isDisabled ? "opacity-50 pointer-events-none cursor-not-allowed hover:bg-transparent" : ""}
+                  `}
+                >
+                  {active && !isDisabled && (
+                    <span className="absolute left-0 top-0 h-full w-1 rounded-r bg-indigo-600" />
+                  )}
+                  <Icon
+                    size={18}
+                    className={`${active ? "text-indigo-600" : "text-gray-500"} ${
+                      collapsed ? "" : "group-hover:text-indigo-600"
+                    }`}
+                  />
+                  {!collapsed && name}
+                </Link>
+              );
+            }
+          })}
+        </nav>
 
-<div className="hidden md:flex justify-start py-4 ms-5  mt-auto">
-  <button
-    onClick={toggleCollapse}
-    className="p-2 rounded-full border hover:bg-gray-100 transition"
-    aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-  >
-    {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-  </button>
-</div>
+        {/* Collapse Button - neatly at bottom */}
+        <div className="hidden md:flex justify-start py-4 ms-5 mt-auto">
+          <button
+            onClick={toggleCollapse}
+            className="p-2 rounded-full border hover:bg-gray-100 transition"
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+          </button>
+        </div>
       </aside>
 
       {/* Mobile toggle button (only on mobile, outside sidebar) */}

@@ -55,7 +55,9 @@ export default function HelpModal({
 
         {/* Flow Cards */}
         <section className="space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900">Connection Flow</h3>
+          <h3 className="text-lg font-semibold text-gray-900">
+            Connection Flow
+          </h3>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
             <StepCard
               icon={<Plus className="w-5 h-5" />}
@@ -97,12 +99,14 @@ export default function HelpModal({
 
       {/* Footer */}
       <footer className="flex justify-end gap-3 border-t border-gray-200 pt-4 px-8">
-        <NavLink
-          to="/help-docs/workflow"
+        <a
+          href={`${import.meta.env.VITE_LANDING_PAGE_URL || ""}/help-docs`}
+          target="_blank"
+          rel="noopener noreferrer"
           className="inline-flex items-center justify-center rounded-lg font-medium transition bg-indigo-600 text-white hover:bg-indigo-700 px-5 py-2 text-sm shadow"
         >
           Full Documentation
-        </NavLink>
+        </a>
         <NavLink
           to="/agents/add"
           className="inline-flex items-center justify-center rounded-lg font-medium transition bg-green-600 text-white hover:bg-green-700 px-5 py-2 text-sm shadow"
