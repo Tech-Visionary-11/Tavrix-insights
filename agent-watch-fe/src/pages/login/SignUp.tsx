@@ -6,12 +6,15 @@ import toast from 'react-hot-toast';
 import { useOrgRegisterMutation, usePersonalRegisterMutation } from './auth.service';
 import { Link, useNavigate } from 'react-router-dom';
 import Cookies from 'js-cookie';
-import {jwtDecode} from "jwt-decode";
+import {jwtDecode} from 'jwt-decode';
+
 
 type RegistrationType = 'personal' | 'organization';
+
 interface JwtPayload {
   exp: number;
 }
+
 interface SignUpValues {
   registrationType: RegistrationType;
   email: string;
@@ -27,17 +30,18 @@ const validationSchema = Yup.object({
   confirmPassword: Yup.string()
     .oneOf([Yup.ref('password')], 'Passwords must match')
     .required('Required'),
-  orgName: Yup.string().when('registrationType', (registrationType, schema) => {
-    return registrationType === 'organization'
+  orgName: Yup.string().when('registrationType', (registrationType, schema) =>
+    registrationType === 'organization'
       ? schema.min(2, 'Too short').required('Organization name is required')
-      : schema.notRequired();
-  }),
+      : schema.notRequired()
+  ),
 });
 
 export function SignUp() {
   const [personalRegister, { isLoading: isLoadingPersonal }] = usePersonalRegisterMutation();
   const [orgRegister, { isLoading: isLoadingOrg }] = useOrgRegisterMutation();
-const navigate = useNavigate();
+  const navigate = useNavigate();
+
   const initialValues: SignUpValues = {
     registrationType: 'personal',
     email: '',
@@ -45,39 +49,51 @@ const navigate = useNavigate();
     confirmPassword: '',
     orgName: '',
   };
-const handleSubmit = async (values: SignUpValues) => {
-  try {
-    let response;
-    if (values.registrationType === 'personal') {
-      response = await personalRegister({
-        email: values.email,
-        password: values.password,
-      }).unwrap();
-      toast.success('Personal account created and logged in!');
-    } else {
-      response = await orgRegister({
-        name: values.orgName || '',
-        email: values.email,
-        password: values.password,
-      }).unwrap();
-      toast.success('Organization created and logged in!');
+
+  const handleSubmit = async (values: SignUpValues) => {
+    try {
+      let response;
+      if (values.registrationType === 'personal') {
+        response = await personalRegister({
+          email: values.email,
+          password: values.password,
+        }).unwrap();
+        toast.success('Personal account created and logged in!');
+      } else {
+        response = await orgRegister({
+          org: { name: values.orgName || '' },  // wrap org name inside org field to match API
+          user: { email: values.email, password: values.password, personal: false },
+        }).unwrap();
+        toast.success('Organization created and logged in!');
+      }
+
+      const token = response.access_token;
+      const decoded: JwtPayload = jwtDecode(token);
+      const expiresAt = new Date(decoded.exp * 1000); 
+
+      Cookies.set('auth_token', token, {
+        expires: expiresAt,
+        secure: true,
+        sameSite: 'Strict',
+      });
+
+      navigate('/', { replace: true });
+    } catch (error: any) {
+      // Handle error with detailed messages if available
+      if (error?.data?.detail) {
+        if (Array.isArray(error.data.detail)) {
+          // For validation errors represented as arrays
+          error.data.detail.forEach((err: any) => toast.error(err.msg || JSON.stringify(err)));
+        } else if (typeof error.data.detail === 'string') {
+          toast.error(error.data.detail);
+        } else {
+          toast.error('Registration failed due to unknown error.');
+        }
+      } else {
+        toast.error('Registration failed.');
+      }
     }
-
-    const token = response.access_token;
-const decoded: JwtPayload = jwtDecode(token);
-    const expiresAt = new Date(decoded.exp * 1000); // convert to ms
-
-    Cookies.set('auth_token', token, {
-      expires: expiresAt,
-      secure: true,
-      sameSite: 'Strict',
-    });
-
-    navigate('/', { replace: true });
-  } catch (error: any) {
-    toast.error(error?.data?.detail || 'Registration failed');
-  }
-};
+  };
 
   const isLoading = isLoadingPersonal || isLoadingOrg;
 
@@ -106,9 +122,10 @@ const decoded: JwtPayload = jwtDecode(token);
                     value="organization"
                     checked={values.registrationType === 'organization'}
                     onChange={() => setFieldValue('registrationType', 'organization')}
-                    className="form-radio"
+                    className="form-radio "
+                    disabled
                   />
-                  <span className="ml-2">Organization</span>
+                  <span className="ml-2 text-gray-500">Organization</span>
                 </label>
               </div>
 
@@ -119,8 +136,7 @@ const decoded: JwtPayload = jwtDecode(token);
                   component={Input}
                   required
                   placeholder="Your organization name"
-
-                  />
+                />
               )}
 
               <FormikField
@@ -131,7 +147,6 @@ const decoded: JwtPayload = jwtDecode(token);
                 required
                 placeholder="your@email.com"
                 className="mt-4"
-
               />
 
               <FormikField
@@ -160,9 +175,9 @@ const decoded: JwtPayload = jwtDecode(token);
             </Form>
           )}
         </Formik>
-      <p className="mt-4 text-sm">
-  Already have an account? <Link to="/signin" className="text-blue-600 hover:underline">Sign In</Link>
-</p>
+        <p className="mt-4 text-sm">
+          Already have an account? <Link to="/signin" className="text-blue-600 hover:underline">Sign In</Link>
+        </p>
       </Card>
     </div>
   );

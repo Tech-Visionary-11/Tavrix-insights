@@ -37,3 +37,7 @@ class Organization(OrganizationBase):
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+class OrgRegisterRequest(BaseModel):
+    org: OrganizationCreate
+    user: UserCreate

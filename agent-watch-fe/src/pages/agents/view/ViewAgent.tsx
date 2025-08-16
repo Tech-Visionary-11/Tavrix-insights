@@ -56,7 +56,7 @@ export default function ViewAgentPage() {
       {!isWorkflow ? (
         <ChatBotInsights />
       ) : (
-        <WorkflowStepSummary steps={agent?.steps || []} />
+        <WorkflowStepSummary steps={agent?.steps || []} isLoading={isLoading} />
       )}
 
       {/* ✅ Logs Table (Always Visible) */}

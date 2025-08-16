@@ -13,3 +13,4 @@ export * from "./input/TextArea";
 export * from "./modal/Modal";
 export * from "./progress/Progress";
 export * from "./switch/Switch";
+export * from "./skeleton/Skeleton";

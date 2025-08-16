@@ -28,7 +28,7 @@ async def get_stepper_view(
     current_user: User = Depends(get_current_user),
 ):
     await ensure_agent_accessible(db, agent_id, current_user)
-    data = await get_stepper_data_for_agent(agent_id, db)
+    data = await get_stepper_data_for_agent(agent_id, db, current_user.id)
     if not data:
         raise HTTPException(404, detail="Agent not found or has no steps")
     return data
@@ -45,7 +45,7 @@ async def session_volume_timeline(
 ):
     await ensure_agent_accessible(db, agent_id, current_user)
     try:
-        return await get_session_volume_timeline(db, agent_id, group_by, since, until)
+        return await get_session_volume_timeline(db, agent_id, current_user.id, group_by, since, until)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -59,7 +59,7 @@ async def session_status_breakdown(
     current_user: User = Depends(get_current_user),
 ):
     await ensure_agent_accessible(db, agent_id, current_user)
-    return await get_session_status_breakdown(db, agent_id, since, until)
+    return await get_session_status_breakdown(db, agent_id, current_user.id, since, until)
 
 
 @router.get("/cost/summary", response_model=CostSummary)
@@ -71,7 +71,7 @@ async def cost_summary(
     current_user: User = Depends(get_current_user),
 ):
     await ensure_agent_accessible(db, agent_id, current_user)
-    return await get_cost_summary(db, agent_id, since, until)
+    return await get_cost_summary(db, agent_id, current_user.id, since, until)
 
 
 @router.get("/highlights")
@@ -79,9 +79,8 @@ async def agent_highlights(
     db: AsyncSession = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    # Optional: restrict this to admin or org-wide summary if needed
     return {
-        **(await get_total_cost_and_top_agent(db)),
-        "most_failures": await get_agent_with_most_failures(db),
-        "most_active": await get_agent_with_most_sessions(db),
+        **(await get_total_cost_and_top_agent(db, current_user.id)),
+        "most_failures": await get_agent_with_most_failures(db, current_user.id),
+        "most_active": await get_agent_with_most_sessions(db, current_user.id),
     }

@@ -1,5 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func,case,desc
+from sqlalchemy import select, func, case, desc
 from sqlalchemy.orm import selectinload
 from typing import List
 from app.models.agent import Agent
@@ -9,11 +9,13 @@ from datetime import date as Date
 from app.schemas.analytics import SessionVolumeEntry
 from app.models.session import Session as SessionModel, SessionStatusEnum
 
-
-async def get_stepper_data_for_agent(agent_id: str, db: AsyncSession) -> List[StepperStep]:
-    # Eagerly load agent and its steps
+# Get step-level stats for an agent, user-limited
+async def get_stepper_data_for_agent(agent_id: str, db: AsyncSession, user_id: str) -> List[StepperStep]:
     result = await db.execute(
-        select(Agent).options(selectinload(Agent.steps)).where(Agent.id == agent_id)
+        select(Agent).options(selectinload(Agent.steps)).where(
+            Agent.id == agent_id,
+            Agent.owner_user_id == user_id
+        )
     )
     agent = result.scalar_one_or_none()
 
@@ -40,7 +42,7 @@ async def get_stepper_data_for_agent(agent_id: str, db: AsyncSession) -> List[St
         )
         error_count = errors_q.scalar_one() or 0
 
-        # Completion count (used for completion rate)
+        # Completion count
         completions_q = await db.execute(
             select(func.count()).where(
                 SessionLog.step_code == step.code,
@@ -49,7 +51,7 @@ async def get_stepper_data_for_agent(agent_id: str, db: AsyncSession) -> List[St
         )
         completion_count = completions_q.scalar_one() or 0
 
-        # Prompt count (used as denominator for completion rate)
+        # Prompt count (for completion rate denominator)
         prompts_q = await db.execute(
             select(func.count()).where(
                 SessionLog.step_code == step.code,
@@ -68,7 +70,7 @@ async def get_stepper_data_for_agent(agent_id: str, db: AsyncSession) -> List[St
         avg_ms = duration_q.scalar()
         avg_duration = round((avg_ms or 0) / 1000.0, 2) if avg_ms else None
 
-        # Avg tokens used (prompt + completion)
+        # Average tokens used (prompt + completion)
         tokens_q = await db.execute(
             select(func.avg(SessionLog.tokens_used)).where(
                 SessionLog.step_code == step.code,
@@ -94,9 +96,12 @@ async def get_stepper_data_for_agent(agent_id: str, db: AsyncSession) -> List[St
 
     return step_data
 
+
+# Timeline stats, only for this user's agent
 async def get_session_volume_timeline(
     db: AsyncSession,
     agent_id: str,
+    user_id: str,
     group_by: str = "day",
     since: Date = None,
     until: Date = None
@@ -112,7 +117,7 @@ async def get_session_volume_timeline(
             period_expr,
             func.count().label("started"),
             func.sum(case(
-            (SessionModel.status == SessionStatusEnum.completed, 1),
+                (SessionModel.status == SessionStatusEnum.completed, 1),
                 else_=0
             )).label("completed"),
             func.sum(case(
@@ -120,7 +125,9 @@ async def get_session_volume_timeline(
                 else_=0
             )).label("errors"),
         )
+        .join(Agent, SessionModel.agent_id == Agent.id)
         .where(SessionModel.agent_id == agent_id)
+        .where(Agent.owner_user_id == user_id)
         .group_by(period_expr)
         .order_by(period_expr.asc())
     )
@@ -142,15 +149,20 @@ async def get_session_volume_timeline(
         for row in records
     ]
 
+
+# Status pie breakdown per agent/user
 async def get_session_status_breakdown(
     db: AsyncSession,
     agent_id: str,
+    user_id: str,
     since=None,
     until=None
 ) -> dict:
     stmt = (
         select(SessionModel.status, func.count().label("count"))
+        .join(Agent, SessionModel.agent_id == Agent.id)
         .where(SessionModel.agent_id == agent_id)
+        .where(Agent.owner_user_id == user_id)
         .group_by(SessionModel.status)
     )
     if since:
@@ -161,9 +173,12 @@ async def get_session_status_breakdown(
     result = await db.execute(stmt)
     return {row.status.value: row.count for row in result.fetchall()}
 
+
+# Cost summary per agent/user
 async def get_cost_summary(
     db: AsyncSession,
     agent_id: str,
+    user_id: str,
     since=None,
     until=None
 ) -> dict:
@@ -173,7 +188,9 @@ async def get_cost_summary(
             func.count().label("session_count"),
             func.coalesce(func.avg(SessionModel.cost_usd), 0).label("avg_cost_per_session")
         )
+        .join(Agent, SessionModel.agent_id == Agent.id)
         .where(SessionModel.agent_id == agent_id)
+        .where(Agent.owner_user_id == user_id)
     )
     if since:
         stmt = stmt.where(SessionModel.started_at >= since)
@@ -187,20 +204,26 @@ async def get_cost_summary(
         "avg_cost_per_session": float(row.avg_cost_per_session or 0)
     }
 
-async def get_total_cost_and_top_agent(db: AsyncSession):
-    # Total cost across all agents
-    total_cost_stmt = select(func.coalesce(func.sum(SessionModel.cost_usd), 0.0))
+# org-wide: all stats only for this user
+async def get_total_cost_and_top_agent(db: AsyncSession, user_id: str):
+    # Total cost for all user's agents
+    total_cost_stmt = (
+        select(func.coalesce(func.sum(SessionModel.cost_usd), 0.0))
+        .join(Agent, SessionModel.agent_id == Agent.id)
+        .where(Agent.owner_user_id == user_id)
+    )
     result = await db.execute(total_cost_stmt)
     total_cost = result.scalar()
-    # Most costly agent
+
+    # Most costly of this user's agents
     stmt = (
         select(Agent.id, Agent.name, func.coalesce(func.sum(SessionModel.cost_usd), 0.0).label("total_cost"))
         .join(SessionModel, SessionModel.agent_id == Agent.id)
+        .where(Agent.owner_user_id == user_id)
         .group_by(Agent.id)
         .order_by(desc("total_cost"))
         .limit(1)
     )
-
     result = await db.execute(stmt)
     top_agent = result.first()
 
@@ -212,11 +235,14 @@ async def get_total_cost_and_top_agent(db: AsyncSession):
             "total_cost": round(top_agent.total_cost, 4)
         } if top_agent else None
     }
-async def get_agent_with_most_failures(db: AsyncSession):
+
+# agent with most failures (for this user)
+async def get_agent_with_most_failures(db: AsyncSession, user_id: str):
     stmt = (
         select(Agent.id, Agent.name, func.count(SessionModel.id).label("failure_count"))
         .join(SessionModel, SessionModel.agent_id == Agent.id)
         .where(SessionModel.status == "error")
+        .where(Agent.owner_user_id == user_id)
         .group_by(Agent.id)
         .order_by(desc("failure_count"))
         .limit(1)
@@ -231,10 +257,13 @@ async def get_agent_with_most_failures(db: AsyncSession):
             "failure_count": row.failure_count
         } if row else None
     }
-async def get_agent_with_most_sessions(db: AsyncSession):
+
+# agent with most sessions (for this user)
+async def get_agent_with_most_sessions(db: AsyncSession, user_id: str):
     stmt = (
         select(Agent.id, Agent.name, func.count(SessionModel.id).label("session_count"))
         .join(SessionModel, SessionModel.agent_id == Agent.id)
+        .where(Agent.owner_user_id == user_id)
         .group_by(Agent.id)
         .order_by(desc("session_count"))
         .limit(1)

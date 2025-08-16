@@ -21,7 +21,7 @@ const navItems = [
   { name: "Help", icon: HelpCircle,      href: "/help-docs/workflow" },
   { name: "Settings",  icon: Settings,       href: "/settings" },
 ];
-const allowedMenuNames = ["Agents"];
+const allowedMenuNames = ["Agents","Help"];
 
 export function Sidebar() {
   const { isOpen, collapsed, toggleMobile, toggleCollapse, closeMobile } = useSidebar();

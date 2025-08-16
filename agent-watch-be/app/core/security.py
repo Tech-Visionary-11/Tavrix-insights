@@ -4,7 +4,7 @@ from jose import  jwt
 
 SECRET_KEY = "your-secret-key"  # Use environment variable in production
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+ACCESS_TOKEN_EXPIRE_MINUTES = 1440
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

@@ -164,7 +164,7 @@ export function SessionTableWithLogs({ sessions, isLoading }: Props) {
   });
 
   return (
-    <Card title="Session Explorer" className="mt-10" loading={isLoading}>
+    <Card title="Session Explorer" className="mt-10" >
       {/* Filters */}
       <div className="flex flex-wrap gap-4 items-center mb-6">
         <Input
@@ -191,6 +191,7 @@ export function SessionTableWithLogs({ sessions, isLoading }: Props) {
       <DataTable
         data={sessions}
         columns={columns}
+        loading={isLoading}
         rowExpandable={{
           expandedRowRender: (row: Session) => (
             <SessionLogsPanel sessionId={row.id} />

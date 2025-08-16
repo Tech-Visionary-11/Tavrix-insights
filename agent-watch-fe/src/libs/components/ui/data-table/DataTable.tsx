@@ -5,10 +5,12 @@ import {
   type ColumnDef,
 } from "@tanstack/react-table";
 import React from "react";
+import { Skeleton } from "../skeleton/Skeleton";
 
 type DataTableProps<TData extends object> = {
   columns: ColumnDef<TData>[];
   data: TData[];
+  loading?: boolean;
   maxHeight?: string;
   onRowClick?: (row: TData) => void;
   rowExpandable?: {
@@ -18,10 +20,10 @@ type DataTableProps<TData extends object> = {
   };
 };
 
-
 export function DataTable<TData extends object>({
   columns,
   data,
+  loading = false,
   maxHeight = "400px",
   onRowClick,
   rowExpandable,
@@ -59,51 +61,72 @@ export function DataTable<TData extends object>({
 
           {/* ───── Body ───── */}
           <tbody className="text-gray-800">
-            {table.getRowModel().rows.map((row, i) => {
-              const originalRow = row.original;
-              const isExpanded =
-                typeof rowExpandable?.isRowExpanded === "function"
-                  ? rowExpandable.isRowExpanded(originalRow)
-                  : false;
+            {loading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <tr key={`skeleton-${i}`} className="border-t border-gray-100">
+                  {columns.map((_, colIndex) => (
+                    <td key={colIndex} className="px-5 py-3">
+                      <Skeleton className="h-4 w-24" />
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : table.getRowModel().rows.length > 0 ? (
+              table.getRowModel().rows.map((row, i) => {
+                const originalRow = row.original;
+                const isExpanded =
+                  typeof rowExpandable?.isRowExpanded === "function"
+                    ? rowExpandable.isRowExpanded(originalRow)
+                    : false;
 
-              return (
-                <React.Fragment key={row.id}>
-                  <tr
-                    className={`border-t border-gray-100 
-                      ${i % 2 === 1 ? "bg-gray-50" : "bg-white"} 
-                      hover:bg-indigo-50/40 cursor-pointer transition
-                    `}
-                    onClick={() => {
-                      rowExpandable?.onExpand?.(originalRow);
-                      onRowClick?.(originalRow);
-                    }}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <td
-                        key={cell.id}
-                        className="px-5 py-3 align-top whitespace-nowrap"
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-
-                  {isExpanded && rowExpandable?.expandedRowRender && (
-                    <tr>
-                      <td
-                        colSpan={columns.length}
-                        className="px-6 py-3 bg-indigo-50/30"
-                      >
-                        {rowExpandable.expandedRowRender(originalRow)}
-                      </td>
+                return (
+                  <React.Fragment key={row.id}>
+                    <tr
+                      className={`border-t border-gray-100 
+                        ${i % 2 === 1 ? "bg-gray-50" : "bg-white"} 
+                        hover:bg-indigo-50/40 cursor-pointer transition
+                      `}
+                      onClick={() => {
+                        rowExpandable?.onExpand?.(originalRow);
+                        onRowClick?.(originalRow);
+                      }}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <td
+                          key={cell.id}
+                          className="px-5 py-3 align-top whitespace-nowrap"
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </td>
+                      ))}
                     </tr>
-                  )}
-                </React.Fragment>
-              );
-            })}
+
+                    {isExpanded && rowExpandable?.expandedRowRender && (
+                      <tr>
+                        <td
+                          colSpan={columns.length}
+                          className="px-6 py-3 bg-indigo-50/30"
+                        >
+                          {rowExpandable.expandedRowRender(originalRow)}
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })
+            ) : (
+              <tr>
+                <td
+                  colSpan={columns.length}
+                  className="px-5 py-6 text-center text-gray-400"
+                >
+                  No data found
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

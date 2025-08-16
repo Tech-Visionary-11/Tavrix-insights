@@ -1,4 +1,3 @@
-// src/pages/agents/AddAgentPage.tsx
 import { useNavigate } from "react-router-dom";
 import AppLayout from "../../libs/components/layout/app-layout/AppLayout";
 import { AgentForm } from "./AgentForm";
@@ -17,7 +16,8 @@ async function handleCreate(values: any) {
       
     navigate(`/agents/view/${agent.id}`);
     toast.success("Agent created successfully!");
-  } catch (err) {
+  } catch (err:any) {
+    toast.error("Failed to create agent. Please try again.",err.message || "Unknown error");
     console.error("Failed to create agent:", err);
     // Optional: show toast or error state here
   }
