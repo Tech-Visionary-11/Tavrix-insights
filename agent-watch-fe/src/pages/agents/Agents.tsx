@@ -29,6 +29,27 @@ type Agent = {
   updated_at: string;
 };
 
+
+export default function Agents() {
+  const [statusFilter, setStatusFilter] = useState("all");
+  const navigate = useNavigate();
+  const [showHelpModal, setShowHelpModal] = useState(false);
+
+  const { data: agents = [], isLoading, isError } = useGetAgentsQuery();
+  const { data: highlights } = useGetAgentHighlightsQuery();
+  const filtered =
+    statusFilter === "all"
+      ? agents
+      : agents.filter((a) => a.status === statusFilter);
+  useEffect(() => {
+    if (!isLoading && !isError && agents.length === 0) {
+      setShowHelpModal(true);
+    } else {
+      setShowHelpModal(false);
+    }
+  }, [agents, isLoading, isError]);
+
+
 const columns: ColumnDef<Agent>[] = [
   {
     accessorKey: "name",
@@ -112,24 +133,6 @@ const columns: ColumnDef<Agent>[] = [
   },
 ];
 
-export default function Agents() {
-  const [statusFilter, setStatusFilter] = useState("all");
-  const navigate = useNavigate();
-  const [showHelpModal, setShowHelpModal] = useState(false);
-
-  const { data: agents = [], isLoading, isError } = useGetAgentsQuery();
-  const { data: highlights } = useGetAgentHighlightsQuery();
-  const filtered =
-    statusFilter === "all"
-      ? agents
-      : agents.filter((a) => a.status === statusFilter);
-  useEffect(() => {
-    if (!isLoading && !isError && agents.length === 0) {
-      setShowHelpModal(true);
-    } else {
-      setShowHelpModal(false);
-    }
-  }, [agents, isLoading, isError]);
 
   if (isLoading) {
     return (
