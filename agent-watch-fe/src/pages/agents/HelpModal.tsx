@@ -34,7 +34,7 @@ export default function HelpModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Getting Started — Agent Watch"
+      title="Getting Started — Travix Insights"
       className="max-w-4xl flex flex-col max-h-[80vh]"
     >
       <div className="flex-1 overflow-y-auto px-8 pb-8 space-y-8">
