@@ -58,9 +58,9 @@ export function Sidebar() {
       >
         {/* Mobile header */}
         <div className="flex items-center justify-between px-4 py-5 md:hidden">
-          <span className="text-lg font-bold text-indigo-700">
-            <img src={logo} alt="agent-watch-logo" /> Travix Insights
-          </span>
+          <h1 className="text-lg font-bold text-indigo-700">
+           Tavrix Insights
+          </h1>
           <button onClick={closeMobile} className="text-gray-500">
             <X size={20} />
           </button>
@@ -75,10 +75,8 @@ export function Sidebar() {
           {collapsed ? (
             <img src={logo} alt="agent-watch-logo" />
           ) : (
-            <div className="flex items-center gap-2">
-              <img src={logo} alt="agent-watch-logo" className="w-6 h-6" />
-              <span className="text-xl font-bold text-indigo-700">Travix Insights</span>
-            </div>
+              <h1 className="text-2xl font-bold text-indigo-700">Tavrix Insights</h1>
+          
           )}
         </div>
 

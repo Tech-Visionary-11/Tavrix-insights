@@ -99,6 +99,14 @@ export function SignUp() {
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-50">
+            <div className="w-full max-w-md">
+      <h1
+          className="text-3xl font-extrabold text-center mb-8
+            text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-500
+            drop-shadow-lg tracking-tight"
+        >
+          Tavrix Insights
+        </h1>
       <Card title="Sign Up" description="Create a new account" className="max-w-md w-full">
         <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={handleSubmit}>
           {({ values, isSubmitting, setFieldValue }) => (
@@ -179,6 +187,7 @@ export function SignUp() {
           Already have an account? <Link to="/signin" className="text-blue-600 hover:underline">Sign In</Link>
         </p>
       </Card>
+    </div>
     </div>
   );
 }
